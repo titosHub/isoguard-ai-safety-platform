@@ -3,7 +3,6 @@ import { motion } from 'framer-motion';
 import {
   ShieldExclamationIcon,
   ExclamationTriangleIcon,
-  ChartBarIcon,
   CubeIcon,
   CloudIcon,
   HeartIcon,
@@ -19,10 +18,15 @@ import {
   ExclamationCircleIcon,
   ArrowPathIcon,
   LightBulbIcon,
+  ClipboardDocumentCheckIcon,
+  WrenchScrewdriverIcon,
+  UserCircleIcon,
+  PrinterIcon,
+  ShieldCheckIcon,
+  SignalIcon,
 } from '@heroicons/react/24/outline';
+import { BellAlertIcon as BellAlertSolid } from '@heroicons/react/24/solid';
 import {
-  BarChart,
-  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -34,8 +38,6 @@ import {
   Pie,
   Cell,
   Legend,
-  AreaChart,
-  Area,
 } from 'recharts';
 
 // Types
@@ -69,16 +71,19 @@ interface DustReading {
   date: string;
 }
 
-// Tab configuration
+// Tab configuration - MSO-focused workflow
 const TABS = [
-  { id: 'overview', label: 'Overview', icon: ChartBarIcon },
-  { id: 'incidents', label: 'Incidents & Accidents', icon: ExclamationTriangleIcon },
+  { id: 'myday', label: 'My Day', icon: UserCircleIcon },
+  { id: 'live', label: 'Live Signals', icon: SignalIcon },
+  { id: 'inspector', label: 'Inspector Mode', icon: ShieldCheckIcon },
+  { id: 'incidents', label: 'Incidents', icon: ExclamationTriangleIcon },
   { id: 'dust', label: 'Dust & Hygiene', icon: CloudIcon },
-  { id: 'health', label: 'Health Surveillance', icon: HeartIcon },
-  { id: 'training', label: 'Training & Competency', icon: AcademicCapIcon },
+  { id: 'health', label: 'Health', icon: HeartIcon },
+  { id: 'training', label: 'Training', icon: AcademicCapIcon },
   { id: 'equipment', label: 'Equipment & PPE', icon: ShieldExclamationIcon },
   { id: 'environmental', label: 'Environmental', icon: BeakerIcon },
   { id: 'predictive', label: 'Predictive AI', icon: LightBulbIcon },
+  { id: 'dailylog', label: 'Daily Log', icon: ClipboardDocumentCheckIcon },
   { id: 'submit', label: 'Submit to Board', icon: PaperAirplaneIcon },
 ];
 
@@ -155,15 +160,77 @@ const PREDICTIVE_DATA = {
   ],
   injuryLikelihood: { next30: 12, next60: 28, next90: 45 },
   aiInsights: [
-    { type: 'warning', message: 'Level 2 has 63% probability of dust exceedance in 14 days', confidence: 87 },
-    { type: 'alert', message: 'Ventilation degradation correlated with PPE non-compliance in Stope area', confidence: 92 },
-    { type: 'info', message: 'Near-miss frequency increased 23% in night shift - recommend intervention', confidence: 78 },
-    { type: 'success', message: 'FOG incidents reduced 45% after support pattern changes', confidence: 95 },
+    { type: 'warning', message: 'Level 2 has 63% probability of dust exceedance in 14 days', confidence: 87, reasons: ['Dust up 18% over 7 days', 'Ventilation below target 3 shifts', 'P3 respirator usage dropped 12%'] },
+    { type: 'alert', message: 'Ventilation degradation correlated with PPE non-compliance in Stope area', confidence: 92, reasons: ['Airflow dropped to 38.5 m³/s', 'PPE violations up 45% this week', 'Temperature rising'] },
+    { type: 'info', message: 'Near-miss frequency increased 23% in night shift - recommend intervention', confidence: 78, reasons: ['12 near-misses last 7 days', 'Night shift has 3x day shift rate', 'Fatigue indicators present'] },
+    { type: 'success', message: 'FOG incidents reduced 45% after support pattern changes', confidence: 95, reasons: ['New support installed Level 3', 'Ground stability improved', 'Seismic activity down'] },
   ],
 };
 
+// MSO "Fix Today" actionable tasks
+const FIX_TODAY_TASKS = [
+  { id: 1, priority: 'critical', task: 'Investigate dust exceedance at Level 2 Stope Face', deadline: '14:00', category: 'dust', zone: 'Level 2', status: 'pending' },
+  { id: 2, priority: 'high', task: 'Address ventilation shortfall at Level 2 (38.5 vs 40 m³/s required)', deadline: '16:00', category: 'environmental', zone: 'Level 2', status: 'pending' },
+  { id: 3, priority: 'high', task: 'Retrain Crew B - 12 workers with expired blasting certificates', deadline: 'Today', category: 'training', zone: 'All', status: 'in_progress' },
+  { id: 4, priority: 'medium', task: 'Review repeated PPE violations in Zone C (5 repeat offenders)', deadline: 'Today', category: 'ppe', zone: 'Zone C', status: 'pending' },
+  { id: 5, priority: 'medium', task: 'Follow up Section 23 notice for INC-003 (Belt fire)', deadline: '17:00', category: 'incidents', zone: 'Conveyor', status: 'pending' },
+  { id: 6, priority: 'low', task: 'Schedule monthly dust calibration', deadline: 'This week', category: 'dust', zone: 'All', status: 'pending' },
+];
+
+// Live safety signals (real-time alerts)
+const LIVE_SIGNALS = [
+  { id: 1, type: 'ppe', severity: 'warning', message: 'No helmet detected - Haul Road Camera 3', zone: 'Haul Road', time: '2 min ago', acknowledged: false },
+  { id: 2, type: 'gas', severity: 'info', message: 'CH₄ rising slowly (0.3% → 0.4%)', zone: 'Level 3', time: '5 min ago', acknowledged: true },
+  { id: 3, type: 'dust', severity: 'critical', message: 'RCS at 92% of limit - approaching exceedance', zone: 'Level 2 Stope', time: '8 min ago', acknowledged: false },
+  { id: 4, type: 'ppe', severity: 'warning', message: 'Respirator removed in dust zone', zone: 'Crusher Area', time: '12 min ago', acknowledged: false },
+  { id: 5, type: 'ventilation', severity: 'warning', message: 'Airflow dropped below threshold', zone: 'Level 2', time: '15 min ago', acknowledged: true },
+  { id: 6, type: 'near_miss', severity: 'alert', message: 'Near-miss reported: Rock fragment', zone: 'Level 3 Stope', time: '23 min ago', acknowledged: false },
+];
+
+// MSO KPIs
+const MSO_KPIS = {
+  daysSinceLastIncident: 47,
+  daysSinceLastFatality: 312,
+  dustExceedanceFreeDays: 3,
+  auditReadinessScore: 94,
+  correctiveActionsClosed: 87,
+  personalLiabilityRisk: 'low',
+  inspectorVisitDue: 12,
+};
+
+// Inspector Mode compliance proof
+const INSPECTOR_PROOF = {
+  lastSubmissions: [
+    { type: 'Monthly Incident Return', date: '2024-02-01', status: 'submitted' },
+    { type: 'Dust Monitoring Report', date: '2024-02-05', status: 'submitted' },
+    { type: 'Training Compliance', date: '2024-01-28', status: 'submitted' },
+    { type: 'Section 23 Notice (INC-002)', date: '2024-02-07', status: 'acknowledged' },
+  ],
+  correctiveActions: [
+    { incident: 'INC-001', action: 'Support installation reviewed', status: 'completed', date: '2024-02-09' },
+    { incident: 'INC-002', action: 'Winch replaced', status: 'completed', date: '2024-02-08' },
+    { incident: 'INC-002', action: 'Training refreshed', status: 'completed', date: '2024-02-09' },
+    { incident: 'INC-003', action: 'Fire suppression upgraded', status: 'in_progress', date: '2024-02-10' },
+  ],
+  complianceGaps: [
+    { area: 'Training', gap: '120 expired certificates', severity: 'medium' },
+    { area: 'Dust Monitoring', gap: '2 active exceedances', severity: 'high' },
+    { area: 'Ventilation', gap: 'Level 2 below requirement', severity: 'medium' },
+  ],
+};
+
+// Daily log entries
+const DAILY_LOG_ENTRIES = [
+  { time: '06:00', entry: 'Shift handover completed', category: 'admin', user: 'J. Smith' },
+  { time: '06:30', entry: 'Morning inspection - all areas cleared', category: 'inspection', user: 'J. Smith' },
+  { time: '08:15', entry: 'Near-miss reported Level 3 - rock fragment', category: 'incident', user: 'M. Johnson' },
+  { time: '09:00', entry: 'Dust reading taken - Level 2 at 0.08 mg/m³ (EXCEEDANCE)', category: 'dust', user: 'P. Williams' },
+  { time: '10:30', entry: 'PPE violation addressed - worker counseled', category: 'ppe', user: 'J. Smith' },
+  { time: '12:00', entry: 'Toolbox talk conducted - 24 attendees', category: 'training', user: 'J. Smith' },
+];
+
 export default function MiningSafety() {
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState('myday');
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [submissionStep, setSubmissionStep] = useState(0);
 
@@ -201,29 +268,33 @@ export default function MiningSafety() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* MSO Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-white flex items-center gap-3">
             <CubeIcon className="w-8 h-8 text-amber-400" />
-            Mining Safety & Compliance
+            Mining Safety Control Room
           </h1>
-          <p className="text-gray-400 mt-1">DMRE Regulatory Compliance & AI-Powered Safety Monitoring</p>
+          <p className="text-gray-400 mt-1">Good morning, Safety Officer • {new Date().toLocaleDateString('en-ZA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
         </div>
         <div className="flex items-center gap-3">
+          <button onClick={() => setActiveTab('inspector')} className="flex items-center gap-2 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors">
+            <ShieldCheckIcon className="w-5 h-5" />
+            Inspector Mode
+          </button>
           <button onClick={handleSubmitToBoard} className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
             <PaperAirplaneIcon className="w-5 h-5" />
-            Submit to Mining Board
+            Submit to Board
           </button>
-          <span className="flex items-center gap-2 px-3 py-1.5 bg-green-500/20 text-green-400 rounded-full text-sm">
-            <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-            Systems Active
-          </span>
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-800 border border-gray-700 rounded-lg">
+            <BellAlertSolid className="w-5 h-5 text-red-400 animate-pulse" />
+            <span className="text-white font-medium">{LIVE_SIGNALS.filter(s => !s.acknowledged).length}</span>
+          </div>
         </div>
       </div>
 
       {/* Tab Navigation */}
-      <div className="flex gap-1 bg-gray-800 rounded-lg p-1 overflow-x-auto">
+      <div className="flex gap-1 bg-gray-800 rounded-lg p-1 overflow-x-auto scrollbar-thin">
         {TABS.map((tab) => (
           <button
             key={tab.id}
@@ -234,129 +305,393 @@ export default function MiningSafety() {
           >
             <tab.icon className="w-4 h-4" />
             {tab.label}
+            {tab.id === 'live' && LIVE_SIGNALS.filter(s => !s.acknowledged).length > 0 && (
+              <span className="ml-1 px-1.5 py-0.5 bg-red-500 text-white text-xs rounded-full">{LIVE_SIGNALS.filter(s => !s.acknowledged).length}</span>
+            )}
           </button>
         ))}
       </div>
 
-      {/* Overview Tab */}
-      {activeTab === 'overview' && (
+      {/* MY DAY Tab - MSO Morning Briefing */}
+      {activeTab === 'myday' && (
         <div className="space-y-6">
-          <div className="grid grid-cols-5 gap-4">
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-gray-800 rounded-xl p-4 border border-gray-700">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-green-500/20 rounded-lg"><ArrowTrendingDownIcon className="w-6 h-6 text-green-400" /></div>
-                <div><p className="text-2xl font-bold text-green-400">34%</p><p className="text-xs text-gray-500">Fatality Reduction YoY</p></div>
-              </div>
+          {/* Top KPI Strip */}
+          <div className="grid grid-cols-6 gap-3">
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-gradient-to-br from-green-900/50 to-green-800/30 rounded-xl p-4 border border-green-500/30">
+              <p className="text-xs text-green-400 uppercase tracking-wide">Days Since Incident</p>
+              <p className="text-3xl font-bold text-green-400">{MSO_KPIS.daysSinceLastIncident}</p>
             </motion.div>
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-gray-800 rounded-xl p-4 border border-red-500/50">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-red-500/20 rounded-lg"><ExclamationTriangleIcon className="w-6 h-6 text-red-400" /></div>
-                <div><p className="text-2xl font-bold text-red-400">{DEMO_DUST_READINGS.filter(d => d.exceedance).length}</p><p className="text-xs text-gray-500">Dust Exceedances</p></div>
-              </div>
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="bg-gradient-to-br from-emerald-900/50 to-emerald-800/30 rounded-xl p-4 border border-emerald-500/30">
+              <p className="text-xs text-emerald-400 uppercase tracking-wide">Fatality Free</p>
+              <p className="text-3xl font-bold text-emerald-400">{MSO_KPIS.daysSinceLastFatality}</p>
+              <p className="text-xs text-gray-500">days</p>
             </motion.div>
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-gray-800 rounded-xl p-4 border border-amber-500/50">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-amber-500/20 rounded-lg"><DocumentTextIcon className="w-6 h-6 text-amber-400" /></div>
-                <div><p className="text-2xl font-bold text-amber-400">{DEMO_INCIDENTS.filter(i => i.status === 'pending').length}</p><p className="text-xs text-gray-500">Pending Reports</p></div>
-              </div>
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-gradient-to-br from-red-900/50 to-red-800/30 rounded-xl p-4 border border-red-500/30">
+              <p className="text-xs text-red-400 uppercase tracking-wide">Dust Exceedance Free</p>
+              <p className="text-3xl font-bold text-red-400">{MSO_KPIS.dustExceedanceFreeDays}</p>
+              <p className="text-xs text-gray-500">days</p>
             </motion.div>
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="bg-gray-800 rounded-xl p-4 border border-gray-700">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-500/20 rounded-lg"><AcademicCapIcon className="w-6 h-6 text-blue-400" /></div>
-                <div><p className="text-2xl font-bold text-blue-400">{TRAINING_COMPLIANCE.safetyInductions.percentage}%</p><p className="text-xs text-gray-500">Training Compliance</p></div>
-              </div>
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="bg-gradient-to-br from-blue-900/50 to-blue-800/30 rounded-xl p-4 border border-blue-500/30">
+              <p className="text-xs text-blue-400 uppercase tracking-wide">Audit Ready Score</p>
+              <p className="text-3xl font-bold text-blue-400">{MSO_KPIS.auditReadinessScore}%</p>
             </motion.div>
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="bg-gray-800 rounded-xl p-4 border border-gray-700">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-purple-500/20 rounded-lg"><ShieldExclamationIcon className="w-6 h-6 text-purple-400" /></div>
-                <div><p className="text-2xl font-bold text-purple-400">{EQUIPMENT_COMPLIANCE.machineGuardingCompliance}%</p><p className="text-xs text-gray-500">PPE Compliance</p></div>
-              </div>
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-gradient-to-br from-purple-900/50 to-purple-800/30 rounded-xl p-4 border border-purple-500/30">
+              <p className="text-xs text-purple-400 uppercase tracking-wide">Corrective Actions</p>
+              <p className="text-3xl font-bold text-purple-400">{MSO_KPIS.correctiveActionsClosed}%</p>
+              <p className="text-xs text-gray-500">closed</p>
+            </motion.div>
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} className={`bg-gradient-to-br rounded-xl p-4 border ${MSO_KPIS.personalLiabilityRisk === 'low' ? 'from-green-900/50 to-green-800/30 border-green-500/30' : MSO_KPIS.personalLiabilityRisk === 'medium' ? 'from-yellow-900/50 to-yellow-800/30 border-yellow-500/30' : 'from-red-900/50 to-red-800/30 border-red-500/30'}`}>
+              <p className="text-xs uppercase tracking-wide" style={{ color: MSO_KPIS.personalLiabilityRisk === 'low' ? '#4ADE80' : MSO_KPIS.personalLiabilityRisk === 'medium' ? '#FBBF24' : '#F87171' }}>Liability Risk</p>
+              <p className="text-2xl font-bold capitalize" style={{ color: MSO_KPIS.personalLiabilityRisk === 'low' ? '#4ADE80' : MSO_KPIS.personalLiabilityRisk === 'medium' ? '#FBBF24' : '#F87171' }}>{MSO_KPIS.personalLiabilityRisk}</p>
+              <p className="text-xs text-gray-500">Inspector in {MSO_KPIS.inspectorVisitDue}d</p>
             </motion.div>
           </div>
 
-          <div className="grid grid-cols-2 gap-6">
-            <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
-              <h3 className="text-lg font-semibold text-white mb-4">Incident Trend (Last 6 Months)</h3>
-              <ResponsiveContainer width="100%" height={250}>
-                <AreaChart data={[
-                  { month: 'Sep', incidents: 12, nearMiss: 28 },
-                  { month: 'Oct', incidents: 8, nearMiss: 32 },
-                  { month: 'Nov', incidents: 15, nearMiss: 25 },
-                  { month: 'Dec', incidents: 6, nearMiss: 38 },
-                  { month: 'Jan', incidents: 9, nearMiss: 30 },
-                  { month: 'Feb', incidents: 5, nearMiss: 35 },
-                ]}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                  <XAxis dataKey="month" stroke="#9CA3AF" />
-                  <YAxis stroke="#9CA3AF" />
-                  <Tooltip contentStyle={{ backgroundColor: '#1F2937', border: '1px solid #374151' }} />
-                  <Legend />
-                  <Area type="monotone" dataKey="incidents" stackId="1" stroke="#EF4444" fill="#EF4444" fillOpacity={0.3} name="Incidents" />
-                  <Area type="monotone" dataKey="nearMiss" stackId="2" stroke="#F59E0B" fill="#F59E0B" fillOpacity={0.3} name="Near Misses" />
-                </AreaChart>
-              </ResponsiveContainer>
+          <div className="grid grid-cols-3 gap-6">
+            {/* Fix Today - Actionable Tasks */}
+            <div className="col-span-2 bg-gray-800 rounded-xl border border-gray-700 p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                  <WrenchScrewdriverIcon className="w-5 h-5 text-amber-400" />
+                  What to Fix Today
+                </h3>
+                <span className="text-sm text-gray-500">{FIX_TODAY_TASKS.filter(t => t.status === 'pending').length} pending</span>
+              </div>
+              <div className="space-y-3">
+                {FIX_TODAY_TASKS.map((task) => (
+                  <motion.div key={task.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: task.id * 0.05 }}
+                    className={`p-4 rounded-lg border-l-4 ${task.priority === 'critical' ? 'bg-red-500/10 border-red-500' : task.priority === 'high' ? 'bg-orange-500/10 border-orange-500' : task.priority === 'medium' ? 'bg-yellow-500/10 border-yellow-500' : 'bg-gray-700/50 border-gray-500'}`}>
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className={`px-2 py-0.5 rounded text-xs font-medium uppercase ${task.priority === 'critical' ? 'bg-red-500/20 text-red-400' : task.priority === 'high' ? 'bg-orange-500/20 text-orange-400' : task.priority === 'medium' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-gray-500/20 text-gray-400'}`}>{task.priority}</span>
+                          <span className="text-xs text-gray-500">{task.zone}</span>
+                        </div>
+                        <p className="text-white">{task.task}</p>
+                      </div>
+                      <div className="text-right ml-4">
+                        <p className="text-sm text-gray-400">Due: {task.deadline}</p>
+                        <button className="mt-1 text-xs text-primary-400 hover:text-primary-300">Mark Done →</button>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
             </div>
-            <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
-              <h3 className="text-lg font-semibold text-white mb-4">Dust Exposure by Type</h3>
-              <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={[
-                  { type: 'RCS', readings: 45, exceedances: 8 },
-                  { type: 'Coal Dust', readings: 38, exceedances: 3 },
-                  { type: 'DPM', readings: 28, exceedances: 2 },
-                ]}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                  <XAxis dataKey="type" stroke="#9CA3AF" />
-                  <YAxis stroke="#9CA3AF" />
-                  <Tooltip contentStyle={{ backgroundColor: '#1F2937', border: '1px solid #374151' }} />
-                  <Legend />
-                  <Bar dataKey="readings" fill="#3B82F6" name="Total Readings" />
-                  <Bar dataKey="exceedances" fill="#EF4444" name="Exceedances" />
-                </BarChart>
-              </ResponsiveContainer>
+
+            {/* 7-Day Risk Forecast */}
+            <div className="space-y-4">
+              <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
+                <h3 className="text-lg font-semibold text-white flex items-center gap-2 mb-4">
+                  <LightBulbIcon className="w-5 h-5 text-purple-400" />
+                  7-Day Risk Forecast
+                </h3>
+                <div className="space-y-3">
+                  {PREDICTIVE_DATA.dustRiskIndex.filter(d => d.risk > 50).map((item) => (
+                    <div key={item.shaft} className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <span className="text-white font-medium">{item.shaft}</span>
+                        <span className="text-red-400 font-bold">{item.risk}% risk</span>
+                      </div>
+                      <p className="text-xs text-gray-400 mt-1">Dust exceedance likely</p>
+                    </div>
+                  ))}
+                  <div className="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+                    <p className="text-yellow-400 text-sm">⚠️ Near-miss trend up 23% on night shift</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Quick Actions */}
+              <div className="bg-gray-800 rounded-xl border border-gray-700 p-4">
+                <h4 className="text-sm font-medium text-gray-400 mb-3">Quick Actions</h4>
+                <div className="grid grid-cols-2 gap-2">
+                  <button className="p-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm text-white text-left">📝 New Incident</button>
+                  <button className="p-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm text-white text-left">🧪 Log Dust Sample</button>
+                  <button className="p-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm text-white text-left">🦺 PPE Violation</button>
+                  <button className="p-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm text-white text-left">📋 Toolbox Talk</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* High-Risk Areas Map */}
+          <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
+            <h3 className="text-lg font-semibold text-white mb-4">Where Am I Exposed Right Now?</h3>
+            <div className="grid grid-cols-6 gap-3">
+              {[{ zone: 'Level 1', risk: 'low', issues: 0 },{ zone: 'Level 2', risk: 'critical', issues: 3 },{ zone: 'Level 3', risk: 'medium', issues: 1 },{ zone: 'Surface', risk: 'low', issues: 0 },{ zone: 'Processing', risk: 'medium', issues: 2 },{ zone: 'Equipment Bay', risk: 'low', issues: 1 }].map((area) => (
+                <div key={area.zone} className={`p-4 rounded-lg text-center cursor-pointer transition-all hover:scale-105 ${area.risk === 'critical' ? 'bg-red-500/30 border-2 border-red-500' : area.risk === 'medium' ? 'bg-yellow-500/20 border border-yellow-500/50' : 'bg-green-500/10 border border-green-500/30'}`}>
+                  <p className="font-medium text-white">{area.zone}</p>
+                  <p className={`text-2xl font-bold ${area.risk === 'critical' ? 'text-red-400' : area.risk === 'medium' ? 'text-yellow-400' : 'text-green-400'}`}>{area.issues}</p>
+                  <p className="text-xs text-gray-400">active issues</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* LIVE SIGNALS Tab - Real-time Safety Monitoring */}
+      {activeTab === 'live' && (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold text-white flex items-center gap-2">
+              <SignalIcon className="w-6 h-6 text-green-400 animate-pulse" />
+              Live Safety Signals
+            </h2>
+            <span className="text-sm text-gray-500">Auto-refreshing every 30s</span>
+          </div>
+
+          <div className="grid grid-cols-4 gap-4">
+            <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4">
+              <p className="text-xs text-red-400 uppercase">Critical Alerts</p>
+              <p className="text-3xl font-bold text-red-400">{LIVE_SIGNALS.filter(s => s.severity === 'critical' && !s.acknowledged).length}</p>
+            </div>
+            <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-4">
+              <p className="text-xs text-orange-400 uppercase">Alerts</p>
+              <p className="text-3xl font-bold text-orange-400">{LIVE_SIGNALS.filter(s => s.severity === 'alert' && !s.acknowledged).length}</p>
+            </div>
+            <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4">
+              <p className="text-xs text-yellow-400 uppercase">Warnings</p>
+              <p className="text-3xl font-bold text-yellow-400">{LIVE_SIGNALS.filter(s => s.severity === 'warning' && !s.acknowledged).length}</p>
+            </div>
+            <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4">
+              <p className="text-xs text-blue-400 uppercase">Info</p>
+              <p className="text-3xl font-bold text-blue-400">{LIVE_SIGNALS.filter(s => s.severity === 'info').length}</p>
+            </div>
+          </div>
+
+          <div className="bg-gray-800 rounded-xl border border-gray-700">
+            <div className="p-4 border-b border-gray-700 flex items-center justify-between">
+              <h3 className="font-semibold text-white">Active Signals</h3>
+              <button className="text-sm text-primary-400 hover:text-primary-300">Acknowledge All</button>
+            </div>
+            <div className="divide-y divide-gray-700">
+              {LIVE_SIGNALS.map((signal) => (
+                <div key={signal.id} className={`p-4 flex items-center justify-between ${!signal.acknowledged ? 'bg-gray-800' : 'bg-gray-900/50'}`}>
+                  <div className="flex items-center gap-4">
+                    <div className={`w-3 h-3 rounded-full ${signal.severity === 'critical' ? 'bg-red-500 animate-pulse' : signal.severity === 'alert' ? 'bg-orange-500 animate-pulse' : signal.severity === 'warning' ? 'bg-yellow-500' : 'bg-blue-500'}`} />
+                    <div>
+                      <p className="text-white">{signal.message}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-xs text-gray-500">{signal.zone}</span>
+                        <span className="text-xs text-gray-600">•</span>
+                        <span className="text-xs text-gray-500">{signal.time}</span>
+                        <span className={`text-xs px-1.5 py-0.5 rounded ${signal.type === 'ppe' ? 'bg-purple-500/20 text-purple-400' : signal.type === 'dust' ? 'bg-orange-500/20 text-orange-400' : signal.type === 'gas' ? 'bg-red-500/20 text-red-400' : signal.type === 'ventilation' ? 'bg-blue-500/20 text-blue-400' : 'bg-yellow-500/20 text-yellow-400'}`}>{signal.type}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {!signal.acknowledged && (
+                      <button className="px-3 py-1 bg-primary-600 text-white text-sm rounded hover:bg-primary-700">Acknowledge</button>
+                    )}
+                    {signal.acknowledged && (
+                      <span className="text-xs text-gray-500">✓ Acknowledged</span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* INSPECTOR MODE Tab - Panic Button / Audit Ready */}
+      {activeTab === 'inspector' && (
+        <div className="space-y-6">
+          <div className="bg-amber-500/10 border-2 border-amber-500 rounded-xl p-6">
+            <div className="flex items-center gap-4">
+              <ShieldCheckIcon className="w-12 h-12 text-amber-400" />
+              <div>
+                <h2 className="text-2xl font-bold text-white">Inspector Mode Active</h2>
+                <p className="text-gray-400">All compliance proof ready for regulator audit</p>
+              </div>
+              <div className="ml-auto">
+                <button className="flex items-center gap-2 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700">
+                  <PrinterIcon className="w-5 h-5" />
+                  Print Full Audit Pack
+                </button>
+              </div>
             </div>
           </div>
 
           <div className="grid grid-cols-3 gap-6">
-            <div className="col-span-2 bg-gray-800 rounded-xl border border-gray-700 p-6">
-              <h3 className="text-lg font-semibold text-white mb-4">Recent Incidents</h3>
+            {/* Latest Submissions */}
+            <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
+              <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                <DocumentChartBarIcon className="w-5 h-5 text-blue-400" />
+                Latest Submissions
+              </h3>
               <div className="space-y-3">
-                {DEMO_INCIDENTS.map((incident) => (
-                  <div key={incident.id} className="flex items-center justify-between p-3 bg-gray-900 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <span className={`w-3 h-3 rounded-full ${getIncidentTypeColor(incident.incidentType)}`} />
-                      <div>
-                        <p className="text-white text-sm">{incident.mineName} - {incident.shaftSection}</p>
-                        <p className="text-xs text-gray-500">{getIncidentTypeLabel(incident.incidentType)}</p>
-                      </div>
+                {INSPECTOR_PROOF.lastSubmissions.map((sub, i) => (
+                  <div key={i} className="p-3 bg-gray-900 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <p className="text-white text-sm">{sub.type}</p>
+                      <span className={`px-2 py-0.5 rounded text-xs ${sub.status === 'submitted' ? 'bg-blue-500/20 text-blue-400' : 'bg-green-500/20 text-green-400'}`}>{sub.status}</span>
                     </div>
-                    <span className={`px-2 py-1 rounded text-xs ${
-                      incident.status === 'acknowledged' ? 'bg-green-500/20 text-green-400' :
-                      incident.status === 'submitted' ? 'bg-blue-500/20 text-blue-400' : 'bg-yellow-500/20 text-yellow-400'
-                    }`}>{incident.status}</span>
+                    <p className="text-xs text-gray-500 mt-1">{sub.date}</p>
                   </div>
                 ))}
               </div>
             </div>
+
+            {/* Corrective Actions */}
             <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
-              <h3 className="text-lg font-semibold text-white mb-4">Compliance Status</h3>
-              <div className="space-y-4">
-                {[
-                  { label: 'Incident Reports', value: 94, color: 'bg-green-500' },
-                  { label: 'Dust Monitoring', value: 88, color: 'bg-blue-500' },
-                  { label: 'Health Surveillance', value: 92, color: 'bg-purple-500' },
-                  { label: 'Training Records', value: 96, color: 'bg-amber-500' },
-                ].map((item) => (
-                  <div key={item.label}>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span className="text-gray-400">{item.label}</span>
-                      <span className="text-white">{item.value}%</span>
+              <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                <WrenchScrewdriverIcon className="w-5 h-5 text-green-400" />
+                Corrective Actions
+              </h3>
+              <div className="space-y-3">
+                {INSPECTOR_PROOF.correctiveActions.map((action, i) => (
+                  <div key={i} className="p-3 bg-gray-900 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <p className="text-white text-sm">{action.action}</p>
+                      {action.status === 'completed' ? <CheckCircleIcon className="w-5 h-5 text-green-400" /> : <ArrowPathIcon className="w-5 h-5 text-yellow-400 animate-spin" />}
                     </div>
-                    <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
-                      <div className={`h-full ${item.color} rounded-full`} style={{ width: `${item.value}%` }} />
-                    </div>
+                    <p className="text-xs text-gray-500 mt-1">{action.incident} • {action.date}</p>
                   </div>
                 ))}
               </div>
+            </div>
+
+            {/* Compliance Gaps */}
+            <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
+              <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                <ExclamationTriangleIcon className="w-5 h-5 text-red-400" />
+                Known Compliance Gaps
+              </h3>
+              <div className="space-y-3">
+                {INSPECTOR_PROOF.complianceGaps.map((gap, i) => (
+                  <div key={i} className={`p-3 rounded-lg ${gap.severity === 'high' ? 'bg-red-500/10 border border-red-500/30' : 'bg-yellow-500/10 border border-yellow-500/30'}`}>
+                    <div className="flex items-center justify-between">
+                      <p className="text-white text-sm font-medium">{gap.area}</p>
+                      <span className={`px-2 py-0.5 rounded text-xs uppercase ${gap.severity === 'high' ? 'bg-red-500/20 text-red-400' : 'bg-yellow-500/20 text-yellow-400'}`}>{gap.severity}</span>
+                    </div>
+                    <p className="text-xs text-gray-400 mt-1">{gap.gap}</p>
+                  </div>
+                ))}
+              </div>
+              <p className="text-xs text-gray-500 mt-4">Tip: Address high-severity gaps before inspector visit</p>
+            </div>
+          </div>
+
+          {/* Quick Access Documents */}
+          <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
+            <h3 className="text-lg font-semibold text-white mb-4">What Will the Inspector Ask?</h3>
+            <div className="grid grid-cols-4 gap-4">
+              {[
+                { label: 'Incident Register', status: 'ready' },
+                { label: 'Dust Monitoring Logs', status: 'ready' },
+                { label: 'Training Records', status: 'gaps' },
+                { label: 'Equipment Inspections', status: 'ready' },
+                { label: 'Section 23 Notices', status: 'ready' },
+                { label: 'Health Surveillance', status: 'ready' },
+                { label: 'Ventilation Records', status: 'warning' },
+                { label: 'PPE Issue Register', status: 'ready' },
+              ].map((doc, i) => (
+                <button key={i} className={`p-4 rounded-lg text-left transition-all hover:scale-105 ${doc.status === 'ready' ? 'bg-green-500/10 border border-green-500/30' : doc.status === 'gaps' ? 'bg-red-500/10 border border-red-500/30' : 'bg-yellow-500/10 border border-yellow-500/30'}`}>
+                  <p className="text-white font-medium">{doc.label}</p>
+                  <p className={`text-xs mt-1 ${doc.status === 'ready' ? 'text-green-400' : doc.status === 'gaps' ? 'text-red-400' : 'text-yellow-400'}`}>
+                    {doc.status === 'ready' ? '✓ Audit Ready' : doc.status === 'gaps' ? '✗ Has Gaps' : '⚠ Review Needed'}
+                  </p>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* DAILY LOG Tab - End of Day Evidence */}
+      {activeTab === 'dailylog' && (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold text-white flex items-center gap-2">
+              <ClipboardDocumentCheckIcon className="w-6 h-6 text-blue-400" />
+              Daily Safety Log
+            </h2>
+            <div className="flex items-center gap-3">
+              <span className="text-gray-400">{new Date().toLocaleDateString('en-ZA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+              <button className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700">
+                <PrinterIcon className="w-5 h-5" />
+                Generate Daily Report
+              </button>
+            </div>
+          </div>
+
+          {/* Today's Summary */}
+          <div className="grid grid-cols-5 gap-4">
+            <div className="bg-gray-800 rounded-xl border border-gray-700 p-4">
+              <p className="text-xs text-gray-500 uppercase">Incidents Today</p>
+              <p className="text-2xl font-bold text-green-400">0</p>
+            </div>
+            <div className="bg-gray-800 rounded-xl border border-gray-700 p-4">
+              <p className="text-xs text-gray-500 uppercase">Near Misses</p>
+              <p className="text-2xl font-bold text-yellow-400">1</p>
+            </div>
+            <div className="bg-gray-800 rounded-xl border border-gray-700 p-4">
+              <p className="text-xs text-gray-500 uppercase">Dust Exceedances</p>
+              <p className="text-2xl font-bold text-red-400">1</p>
+            </div>
+            <div className="bg-gray-800 rounded-xl border border-gray-700 p-4">
+              <p className="text-xs text-gray-500 uppercase">PPE Violations</p>
+              <p className="text-2xl font-bold text-orange-400">3</p>
+            </div>
+            <div className="bg-gray-800 rounded-xl border border-gray-700 p-4">
+              <p className="text-xs text-gray-500 uppercase">Corrective Actions</p>
+              <p className="text-2xl font-bold text-blue-400">2</p>
+            </div>
+          </div>
+
+          {/* Log Timeline */}
+          <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
+            <h3 className="text-lg font-semibold text-white mb-4">Activity Timeline</h3>
+            <div className="space-y-4">
+              {DAILY_LOG_ENTRIES.map((entry, i) => (
+                <div key={i} className="flex items-start gap-4">
+                  <div className="text-right w-16">
+                    <span className="text-white font-mono">{entry.time}</span>
+                  </div>
+                  <div className="flex-shrink-0 w-3 h-3 mt-1.5 rounded-full bg-primary-500" />
+                  <div className="flex-1 pb-4 border-b border-gray-700">
+                    <p className="text-white">{entry.entry}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className={`text-xs px-1.5 py-0.5 rounded ${entry.category === 'incident' ? 'bg-red-500/20 text-red-400' : entry.category === 'dust' ? 'bg-orange-500/20 text-orange-400' : entry.category === 'ppe' ? 'bg-purple-500/20 text-purple-400' : entry.category === 'training' ? 'bg-blue-500/20 text-blue-400' : 'bg-gray-500/20 text-gray-400'}`}>{entry.category}</span>
+                      <span className="text-xs text-gray-500">by {entry.user}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Add Entry */}
+          <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
+            <h3 className="text-lg font-semibold text-white mb-4">Add Log Entry</h3>
+            <div className="flex gap-4">
+              <input type="text" placeholder="What happened?" className="flex-1 px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-primary-500" />
+              <select className="px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-primary-500">
+                <option value="admin">Admin</option>
+                <option value="inspection">Inspection</option>
+                <option value="incident">Incident</option>
+                <option value="dust">Dust</option>
+                <option value="ppe">PPE</option>
+                <option value="training">Training</option>
+              </select>
+              <button className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700">Add Entry</button>
+            </div>
+          </div>
+
+          {/* Supervisor Sign-off */}
+          <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-white">End of Day Sign-off</h3>
+                <p className="text-gray-400 text-sm">Confirm all safety activities have been logged and reviewed</p>
+              </div>
+              <button className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                <CheckCircleIcon className="w-5 h-5" />
+                Sign Off & Close Day
+              </button>
             </div>
           </div>
         </div>
