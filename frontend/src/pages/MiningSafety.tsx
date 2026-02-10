@@ -38,6 +38,10 @@ import {
   Pie,
   Cell,
   Legend,
+  BarChart,
+  Bar,
+  AreaChart,
+  Area,
 } from 'recharts';
 
 // Types
@@ -77,6 +81,7 @@ const TABS = [
   { id: 'live', label: 'Live Signals', icon: SignalIcon },
   { id: 'inspector', label: 'Inspector Mode', icon: ShieldCheckIcon },
   { id: 'incidents', label: 'Incidents', icon: ExclamationTriangleIcon },
+  { id: 'analytics', label: 'Analytics', icon: DocumentChartBarIcon },
   { id: 'dust', label: 'Dust & Hygiene', icon: CloudIcon },
   { id: 'health', label: 'Health', icon: HeartIcon },
   { id: 'training', label: 'Training', icon: AcademicCapIcon },
@@ -87,12 +92,74 @@ const TABS = [
   { id: 'submit', label: 'Submit to Board', icon: PaperAirplaneIcon },
 ];
 
-// Demo data
+// Comprehensive incident data
 const DEMO_INCIDENTS: IncidentReport[] = [
-  { id: 'INC-001', mineName: 'Gold Mine Alpha', rightNumber: 'MR-2024-001', shaftSection: 'Level 3 Stope', dateTime: '2024-02-08T14:30:00', incidentType: 'near_miss', occupation: 'Rock Drill Operator', ppeWorn: true, ppeType: ['Helmet', 'Respirator'], immediateCause: 'Rock fall', rootCause: 'environmental', correctiveActions: 'Support installation reviewed', inspectorNotified: '2024-02-08T15:00:00', status: 'submitted' },
-  { id: 'INC-002', mineName: 'Platinum Mine Beta', rightNumber: 'MR-2024-002', shaftSection: 'Main Decline', dateTime: '2024-02-07T08:15:00', incidentType: 'lti', occupation: 'Winch Operator', ppeWorn: true, ppeType: ['Helmet', 'Gloves', 'Safety boots'], immediateCause: 'Equipment malfunction', rootCause: 'equipment', correctiveActions: 'Winch replaced, training refreshed', inspectorNotified: '2024-02-07T09:00:00', status: 'acknowledged' },
-  { id: 'INC-003', mineName: 'Coal Mine Gamma', rightNumber: 'MR-2024-003', shaftSection: 'Conveyor Section', dateTime: '2024-02-06T22:45:00', incidentType: 'dangerous_occurrence', occupation: 'Belt Attendant', ppeWorn: false, ppeType: [], immediateCause: 'Belt fire', rootCause: 'equipment', correctiveActions: 'Fire suppression upgraded', inspectorNotified: '2024-02-06T23:00:00', status: 'pending' },
+  { id: 'INC-001', mineName: 'Gold Mine Alpha', rightNumber: 'MR-2024-001', shaftSection: 'Level 3 Stope', dateTime: '2024-02-08T14:30:00', incidentType: 'near_miss', occupation: 'Rock Drill Operator', ppeWorn: true, ppeType: ['Helmet', 'Respirator', 'Safety boots'], immediateCause: 'Rock fall from hanging wall', rootCause: 'environmental', correctiveActions: 'Support installation reviewed, barring down procedure reinforced', inspectorNotified: '2024-02-08T15:00:00', status: 'submitted' },
+  { id: 'INC-002', mineName: 'Platinum Mine Beta', rightNumber: 'MR-2024-002', shaftSection: 'Main Decline', dateTime: '2024-02-07T08:15:00', incidentType: 'lti', occupation: 'Winch Operator', ppeWorn: true, ppeType: ['Helmet', 'Gloves', 'Safety boots'], immediateCause: 'Winch cable snapped during hoisting', rootCause: 'equipment', correctiveActions: 'Winch replaced, cable inspection protocol updated', inspectorNotified: '2024-02-07T09:00:00', status: 'acknowledged' },
+  { id: 'INC-003', mineName: 'Coal Mine Gamma', rightNumber: 'MR-2024-003', shaftSection: 'Conveyor Section', dateTime: '2024-02-06T22:45:00', incidentType: 'dangerous_occurrence', occupation: 'Belt Attendant', ppeWorn: false, ppeType: [], immediateCause: 'Conveyor belt friction ignition', rootCause: 'equipment', correctiveActions: 'Fire suppression upgraded, belt alignment corrected', inspectorNotified: '2024-02-06T23:00:00', status: 'pending' },
+  { id: 'INC-004', mineName: 'Gold Mine Alpha', rightNumber: 'MR-2024-001', shaftSection: 'Level 2 Crosscut', dateTime: '2024-02-05T11:20:00', incidentType: 'near_miss', occupation: 'Locomotive Driver', ppeWorn: true, ppeType: ['Helmet', 'Reflective vest'], immediateCause: 'Near collision at intersection', rootCause: 'human', correctiveActions: 'Traffic management review, signage improved', inspectorNotified: '2024-02-05T12:00:00', status: 'acknowledged' },
+  { id: 'INC-005', mineName: 'Platinum Mine Beta', rightNumber: 'MR-2024-002', shaftSection: 'Shaft Station', dateTime: '2024-02-04T16:45:00', incidentType: 'fai', occupation: 'Shaft Timberman', ppeWorn: true, ppeType: ['Helmet', 'Gloves', 'Safety harness'], immediateCause: 'Hand caught between timber supports', rootCause: 'human', correctiveActions: 'Task risk assessment updated, refresher training', inspectorNotified: '', status: 'submitted' },
+  { id: 'INC-006', mineName: 'Coal Mine Gamma', rightNumber: 'MR-2024-003', shaftSection: 'Surface Stockpile', dateTime: '2024-02-03T09:30:00', incidentType: 'mti', occupation: 'Dozer Operator', ppeWorn: true, ppeType: ['Helmet', 'Safety boots', 'Dust mask'], immediateCause: 'Slipped on wet coal surface', rootCause: 'environmental', correctiveActions: 'Housekeeping improved, anti-slip measures', inspectorNotified: '', status: 'acknowledged' },
+  { id: 'INC-007', mineName: 'Gold Mine Alpha', rightNumber: 'MR-2024-001', shaftSection: 'Processing Plant', dateTime: '2024-02-02T14:00:00', incidentType: 'near_miss', occupation: 'Process Controller', ppeWorn: true, ppeType: ['Helmet', 'Safety glasses', 'Ear plugs'], immediateCause: 'Chemical spill near walkway', rootCause: 'equipment', correctiveActions: 'Pipe fitting replaced, bunding installed', inspectorNotified: '2024-02-02T14:30:00', status: 'acknowledged' },
+  { id: 'INC-008', mineName: 'Platinum Mine Beta', rightNumber: 'MR-2024-002', shaftSection: 'Level 4 Stope', dateTime: '2024-02-01T07:45:00', incidentType: 'dangerous_occurrence', occupation: 'Blaster', ppeWorn: true, ppeType: ['Helmet', 'Respirator', 'Ear protection'], immediateCause: 'Misfire during blasting round', rootCause: 'human', correctiveActions: 'Blasting procedure audit, competency re-assessment', inspectorNotified: '2024-02-01T08:00:00', status: 'submitted' },
+  { id: 'INC-009', mineName: 'Coal Mine Gamma', rightNumber: 'MR-2024-003', shaftSection: 'Main Fan', dateTime: '2024-01-30T23:15:00', incidentType: 'near_miss', occupation: 'Ventilation Officer', ppeWorn: true, ppeType: ['Helmet', 'Respirator'], immediateCause: 'Fan bearing overheating detected', rootCause: 'equipment', correctiveActions: 'Bearing replaced, monitoring frequency increased', inspectorNotified: '', status: 'acknowledged' },
+  { id: 'INC-010', mineName: 'Gold Mine Alpha', rightNumber: 'MR-2024-001', shaftSection: 'Level 1 Tramming', dateTime: '2024-01-28T13:00:00', incidentType: 'lti', occupation: 'LHD Operator', ppeWorn: true, ppeType: ['Helmet', 'Seatbelt'], immediateCause: 'LHD rolled on decline ramp', rootCause: 'human', correctiveActions: 'Speed limit enforcement, ROPS inspection', inspectorNotified: '2024-01-28T13:30:00', status: 'acknowledged' },
+  { id: 'INC-011', mineName: 'Platinum Mine Beta', rightNumber: 'MR-2024-002', shaftSection: 'Workshop', dateTime: '2024-01-25T10:30:00', incidentType: 'fai', occupation: 'Fitter', ppeWorn: false, ppeType: [], immediateCause: 'Grinder disc shattered', rootCause: 'equipment', correctiveActions: 'Disc inspection protocol, PPE enforcement', inspectorNotified: '', status: 'submitted' },
+  { id: 'INC-012', mineName: 'Coal Mine Gamma', rightNumber: 'MR-2024-003', shaftSection: 'Belt Road 2', dateTime: '2024-01-22T19:00:00', incidentType: 'near_miss', occupation: 'Electrician', ppeWorn: true, ppeType: ['Helmet', 'Insulated gloves'], immediateCause: 'Exposed live cable identified', rootCause: 'equipment', correctiveActions: 'Cable replaced, isolation procedures reviewed', inspectorNotified: '2024-01-22T19:30:00', status: 'acknowledged' },
 ];
+
+// Analytics data for charts
+const INCIDENT_ANALYTICS = {
+  monthlyTrend: [
+    { month: 'Sep', fatalities: 0, lti: 2, mti: 3, fai: 5, nearMiss: 18, dangerous: 1 },
+    { month: 'Oct', fatalities: 0, lti: 1, mti: 4, fai: 7, nearMiss: 22, dangerous: 2 },
+    { month: 'Nov', fatalities: 1, lti: 3, mti: 2, fai: 4, nearMiss: 15, dangerous: 1 },
+    { month: 'Dec', fatalities: 0, lti: 1, mti: 2, fai: 6, nearMiss: 25, dangerous: 0 },
+    { month: 'Jan', fatalities: 0, lti: 2, mti: 3, fai: 5, nearMiss: 28, dangerous: 2 },
+    { month: 'Feb', fatalities: 0, lti: 1, mti: 1, fai: 3, nearMiss: 12, dangerous: 1 },
+  ],
+  byRootCause: [
+    { cause: 'Human Error', count: 45, percentage: 38 },
+    { cause: 'Equipment Failure', count: 42, percentage: 35 },
+    { cause: 'Environmental', count: 32, percentage: 27 },
+  ],
+  byLocation: [
+    { location: 'Stope Areas', incidents: 35, severity: 'high' },
+    { location: 'Tramming/Haulage', incidents: 28, severity: 'medium' },
+    { location: 'Surface Operations', incidents: 18, severity: 'low' },
+    { location: 'Workshop/Maintenance', incidents: 15, severity: 'medium' },
+    { location: 'Shaft/Stations', incidents: 12, severity: 'high' },
+    { location: 'Processing Plant', incidents: 11, severity: 'low' },
+  ],
+  byShift: [
+    { shift: 'Day Shift (06:00-14:00)', incidents: 48, percentage: 40 },
+    { shift: 'Afternoon (14:00-22:00)', incidents: 42, percentage: 35 },
+    { shift: 'Night Shift (22:00-06:00)', incidents: 29, percentage: 25 },
+  ],
+  byOccupation: [
+    { occupation: 'Rock Drill Operators', incidents: 22 },
+    { occupation: 'LHD/TMM Operators', incidents: 18 },
+    { occupation: 'Artisans (Fitters/Electricians)', incidents: 15 },
+    { occupation: 'General Workers', incidents: 28 },
+    { occupation: 'Supervisors', incidents: 8 },
+    { occupation: 'Blasters', incidents: 12 },
+    { occupation: 'Others', incidents: 16 },
+  ],
+  safetyRates: {
+    ltifr: 2.34,
+    ltifrTarget: 2.0,
+    trifr: 8.56,
+    trifrTarget: 7.5,
+    fatalities2024: 1,
+    fatalities2023: 3,
+    nearMissRatio: 4.2,
+  },
+  section54Notices: [
+    { date: '2024-01-15', reason: 'Ventilation non-compliance', duration: '4 hours', resolved: true },
+    { date: '2024-01-28', reason: 'Fall of ground investigation', duration: '8 hours', resolved: true },
+    { date: '2024-02-06', reason: 'Belt fire investigation', duration: 'Ongoing', resolved: false },
+  ],
+};
 
 const DEMO_DUST_READINGS: DustReading[] = [
   { id: 'DUST-001', location: 'Level 2 Stope Face', dustType: 'rcs', exposure: 0.08, limit: 0.05, shiftDuration: 8, samplingMethod: 'Gravimetric', respiratorType: 'P3 Half-mask', exceedance: true, date: '2024-02-08' },
@@ -701,13 +768,69 @@ export default function MiningSafety() {
       {activeTab === 'incidents' && (
         <div className="space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-white">Incident & Accident Data (DMRE Submission)</h2>
-            <button className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700">
-              <DocumentTextIcon className="w-5 h-5" />
-              New Incident Report
-            </button>
+            <h2 className="text-xl font-semibold text-white">Incident & Accident Register</h2>
+            <div className="flex items-center gap-3">
+              <button className="flex items-center gap-2 px-3 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 text-sm">
+                <PrinterIcon className="w-4 h-4" />
+                Export Register
+              </button>
+              <button className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700">
+                <DocumentTextIcon className="w-5 h-5" />
+                New Incident Report
+              </button>
+            </div>
           </div>
+
+          {/* Summary Cards */}
+          <div className="grid grid-cols-6 gap-3">
+            <div className="bg-gray-800 rounded-lg border border-gray-700 p-3">
+              <p className="text-xs text-gray-500 uppercase">Total (YTD)</p>
+              <p className="text-2xl font-bold text-white">{DEMO_INCIDENTS.length}</p>
+            </div>
+            <div className="bg-red-500/10 rounded-lg border border-red-500/30 p-3">
+              <p className="text-xs text-red-400 uppercase">Fatalities</p>
+              <p className="text-2xl font-bold text-red-400">{INCIDENT_ANALYTICS.safetyRates.fatalities2024}</p>
+            </div>
+            <div className="bg-orange-500/10 rounded-lg border border-orange-500/30 p-3">
+              <p className="text-xs text-orange-400 uppercase">LTIs</p>
+              <p className="text-2xl font-bold text-orange-400">{DEMO_INCIDENTS.filter(i => i.incidentType === 'lti').length}</p>
+            </div>
+            <div className="bg-yellow-500/10 rounded-lg border border-yellow-500/30 p-3">
+              <p className="text-xs text-yellow-400 uppercase">Near Misses</p>
+              <p className="text-2xl font-bold text-yellow-400">{DEMO_INCIDENTS.filter(i => i.incidentType === 'near_miss').length}</p>
+            </div>
+            <div className="bg-pink-500/10 rounded-lg border border-pink-500/30 p-3">
+              <p className="text-xs text-pink-400 uppercase">Dangerous Occ.</p>
+              <p className="text-2xl font-bold text-pink-400">{DEMO_INCIDENTS.filter(i => i.incidentType === 'dangerous_occurrence').length}</p>
+            </div>
+            <div className="bg-blue-500/10 rounded-lg border border-blue-500/30 p-3">
+              <p className="text-xs text-blue-400 uppercase">Pending</p>
+              <p className="text-2xl font-bold text-blue-400">{DEMO_INCIDENTS.filter(i => i.status === 'pending').length}</p>
+            </div>
+          </div>
+
+          {/* Incident Table */}
           <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
+            <div className="p-4 border-b border-gray-700 flex items-center justify-between">
+              <h3 className="font-semibold text-white">Incident Register</h3>
+              <div className="flex items-center gap-2">
+                <select className="px-3 py-1.5 bg-gray-900 border border-gray-700 rounded text-sm text-white">
+                  <option>All Types</option>
+                  <option>Fatalities</option>
+                  <option>LTI</option>
+                  <option>MTI</option>
+                  <option>FAI</option>
+                  <option>Near Miss</option>
+                  <option>Dangerous Occurrence</option>
+                </select>
+                <select className="px-3 py-1.5 bg-gray-900 border border-gray-700 rounded text-sm text-white">
+                  <option>All Mines</option>
+                  <option>Gold Mine Alpha</option>
+                  <option>Platinum Mine Beta</option>
+                  <option>Coal Mine Gamma</option>
+                </select>
+              </div>
+            </div>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-gray-900">
@@ -716,31 +839,243 @@ export default function MiningSafety() {
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">Mine / Section</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">Type</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">Date/Time</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">Occupation</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">Cause</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">Root Cause</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">PPE</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">Status</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-700">
                   {DEMO_INCIDENTS.map((incident) => (
                     <tr key={incident.id} className="hover:bg-gray-700/50">
                       <td className="px-4 py-3 text-sm text-white font-mono">{incident.id}</td>
-                      <td className="px-4 py-3"><div className="text-sm text-white">{incident.mineName}</div><div className="text-xs text-gray-500">{incident.shaftSection}</div></td>
-                      <td className="px-4 py-3"><span className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs ${getIncidentTypeColor(incident.incidentType)} text-white`}>{getIncidentTypeLabel(incident.incidentType)}</span></td>
-                      <td className="px-4 py-3 text-sm text-gray-400">{new Date(incident.dateTime).toLocaleString()}</td>
-                      <td className="px-4 py-3 text-sm text-gray-400 capitalize">{incident.rootCause}</td>
-                      <td className="px-4 py-3">{incident.ppeWorn ? <CheckCircleIcon className="w-5 h-5 text-green-400" /> : <XCircleIcon className="w-5 h-5 text-red-400" />}</td>
-                      <td className="px-4 py-3"><span className={`px-2 py-1 rounded text-xs ${incident.status === 'acknowledged' ? 'bg-green-500/20 text-green-400' : incident.status === 'submitted' ? 'bg-blue-500/20 text-blue-400' : 'bg-yellow-500/20 text-yellow-400'}`}>{incident.status}</span></td>
+                      <td className="px-4 py-3">
+                        <div className="text-sm text-white">{incident.mineName}</div>
+                        <div className="text-xs text-gray-500">{incident.shaftSection}</div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs ${getIncidentTypeColor(incident.incidentType)} text-white`}>
+                          {getIncidentTypeLabel(incident.incidentType)}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-400">
+                        <div>{new Date(incident.dateTime).toLocaleDateString()}</div>
+                        <div className="text-xs">{new Date(incident.dateTime).toLocaleTimeString()}</div>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-400">{incident.occupation}</td>
+                      <td className="px-4 py-3 text-sm text-gray-400 max-w-xs truncate" title={incident.immediateCause}>{incident.immediateCause}</td>
+                      <td className="px-4 py-3">
+                        <span className={`px-2 py-1 rounded text-xs ${incident.rootCause === 'human' ? 'bg-purple-500/20 text-purple-400' : incident.rootCause === 'equipment' ? 'bg-blue-500/20 text-blue-400' : 'bg-green-500/20 text-green-400'}`}>
+                          {incident.rootCause}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        {incident.ppeWorn ? <CheckCircleIcon className="w-5 h-5 text-green-400" /> : <XCircleIcon className="w-5 h-5 text-red-400" />}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`px-2 py-1 rounded text-xs ${incident.status === 'acknowledged' ? 'bg-green-500/20 text-green-400' : incident.status === 'submitted' ? 'bg-blue-500/20 text-blue-400' : incident.status === 'pending' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-gray-500/20 text-gray-400'}`}>
+                          {incident.status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <button className="text-primary-400 hover:text-primary-300 text-sm">View</button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
           </div>
+
+          {/* Section 54 Notices */}
+          <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
+            <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+              <ExclamationTriangleIcon className="w-5 h-5 text-red-400" />
+              Section 54 Stoppage Notices (2024)
+            </h3>
+            <div className="space-y-3">
+              {INCIDENT_ANALYTICS.section54Notices.map((notice, i) => (
+                <div key={i} className={`p-4 rounded-lg ${notice.resolved ? 'bg-gray-700/50' : 'bg-red-500/10 border border-red-500/30'}`}>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-white font-medium">{notice.reason}</p>
+                      <p className="text-sm text-gray-400">{notice.date} • Duration: {notice.duration}</p>
+                    </div>
+                    <span className={`px-2 py-1 rounded text-xs ${notice.resolved ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                      {notice.resolved ? 'Resolved' : 'Active'}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Auto Reports Info */}
           <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
             <div className="flex items-start gap-3">
               <DocumentTextIcon className="w-6 h-6 text-blue-400 flex-shrink-0" />
-              <div><h4 className="text-blue-400 font-medium">Auto-Generated Reports</h4><p className="text-sm text-gray-400 mt-1">System auto-generates Section 23 notices, statutory incident reports, and DMRE submission forms.</p></div>
+              <div>
+                <h4 className="text-blue-400 font-medium">Auto-Generated Reports</h4>
+                <p className="text-sm text-gray-400 mt-1">System auto-generates Section 23 notices (within 24hrs of fatality/serious injury), Section 54 compliance reports, and monthly DMRE incident returns.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Analytics Tab */}
+      {activeTab === 'analytics' && (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold text-white">Safety Analytics & Statistics</h2>
+            <div className="flex items-center gap-2">
+              <select className="px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white">
+                <option>Last 6 Months</option>
+                <option>Last 12 Months</option>
+                <option>Year to Date</option>
+                <option>2023</option>
+              </select>
+              <button className="flex items-center gap-2 px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600">
+                <PrinterIcon className="w-5 h-5" />
+                Export Report
+              </button>
+            </div>
+          </div>
+
+          {/* Safety Performance Rates */}
+          <div className="grid grid-cols-4 gap-4">
+            <div className="bg-gray-800 rounded-xl border border-gray-700 p-4">
+              <p className="text-xs text-gray-500 uppercase">LTIFR</p>
+              <div className="flex items-end gap-2">
+                <p className={`text-3xl font-bold ${INCIDENT_ANALYTICS.safetyRates.ltifr > INCIDENT_ANALYTICS.safetyRates.ltifrTarget ? 'text-red-400' : 'text-green-400'}`}>
+                  {INCIDENT_ANALYTICS.safetyRates.ltifr}
+                </p>
+                <p className="text-sm text-gray-500 mb-1">Target: {INCIDENT_ANALYTICS.safetyRates.ltifrTarget}</p>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">Lost Time Injury Frequency Rate</p>
+            </div>
+            <div className="bg-gray-800 rounded-xl border border-gray-700 p-4">
+              <p className="text-xs text-gray-500 uppercase">TRIFR</p>
+              <div className="flex items-end gap-2">
+                <p className={`text-3xl font-bold ${INCIDENT_ANALYTICS.safetyRates.trifr > INCIDENT_ANALYTICS.safetyRates.trifrTarget ? 'text-red-400' : 'text-green-400'}`}>
+                  {INCIDENT_ANALYTICS.safetyRates.trifr}
+                </p>
+                <p className="text-sm text-gray-500 mb-1">Target: {INCIDENT_ANALYTICS.safetyRates.trifrTarget}</p>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">Total Recordable Injury Frequency Rate</p>
+            </div>
+            <div className="bg-gray-800 rounded-xl border border-gray-700 p-4">
+              <p className="text-xs text-gray-500 uppercase">Near Miss Ratio</p>
+              <p className="text-3xl font-bold text-blue-400">{INCIDENT_ANALYTICS.safetyRates.nearMissRatio}:1</p>
+              <p className="text-xs text-gray-500 mt-1">Near misses per recordable injury</p>
+            </div>
+            <div className="bg-gray-800 rounded-xl border border-gray-700 p-4">
+              <p className="text-xs text-gray-500 uppercase">Fatality Reduction</p>
+              <p className="text-3xl font-bold text-green-400">
+                {Math.round(((INCIDENT_ANALYTICS.safetyRates.fatalities2023 - INCIDENT_ANALYTICS.safetyRates.fatalities2024) / INCIDENT_ANALYTICS.safetyRates.fatalities2023) * 100)}%
+              </p>
+              <p className="text-xs text-gray-500 mt-1">vs. Previous Year ({INCIDENT_ANALYTICS.safetyRates.fatalities2023} → {INCIDENT_ANALYTICS.safetyRates.fatalities2024})</p>
+            </div>
+          </div>
+
+          {/* Charts Row 1 */}
+          <div className="grid grid-cols-2 gap-6">
+            <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
+              <h3 className="text-lg font-semibold text-white mb-4">Incident Trend (6 Months)</h3>
+              <ResponsiveContainer width="100%" height={280}>
+                <AreaChart data={INCIDENT_ANALYTICS.monthlyTrend}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                  <XAxis dataKey="month" stroke="#9CA3AF" />
+                  <YAxis stroke="#9CA3AF" />
+                  <Tooltip contentStyle={{ backgroundColor: '#1F2937', border: '1px solid #374151' }} />
+                  <Legend />
+                  <Area type="monotone" dataKey="nearMiss" stackId="1" stroke="#FBBF24" fill="#FBBF24" fillOpacity={0.3} name="Near Miss" />
+                  <Area type="monotone" dataKey="fai" stackId="2" stroke="#3B82F6" fill="#3B82F6" fillOpacity={0.3} name="FAI" />
+                  <Area type="monotone" dataKey="mti" stackId="3" stroke="#8B5CF6" fill="#8B5CF6" fillOpacity={0.3} name="MTI" />
+                  <Area type="monotone" dataKey="lti" stackId="4" stroke="#F97316" fill="#F97316" fillOpacity={0.3} name="LTI" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
+              <h3 className="text-lg font-semibold text-white mb-4">Incidents by Root Cause</h3>
+              <ResponsiveContainer width="100%" height={280}>
+                <PieChart>
+                  <Pie data={INCIDENT_ANALYTICS.byRootCause} cx="50%" cy="50%" innerRadius={60} outerRadius={100} dataKey="count" label={({ cause, percentage }) => `${cause}: ${percentage}%`}>
+                    <Cell fill="#A855F7" />
+                    <Cell fill="#3B82F6" />
+                    <Cell fill="#22C55E" />
+                  </Pie>
+                  <Tooltip contentStyle={{ backgroundColor: '#1F2937', border: '1px solid #374151' }} />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="flex justify-center gap-6 mt-2">
+                <span className="flex items-center gap-2 text-sm"><span className="w-3 h-3 bg-purple-500 rounded"></span>Human</span>
+                <span className="flex items-center gap-2 text-sm"><span className="w-3 h-3 bg-blue-500 rounded"></span>Equipment</span>
+                <span className="flex items-center gap-2 text-sm"><span className="w-3 h-3 bg-green-500 rounded"></span>Environmental</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Charts Row 2 */}
+          <div className="grid grid-cols-2 gap-6">
+            <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
+              <h3 className="text-lg font-semibold text-white mb-4">Incidents by Location</h3>
+              <ResponsiveContainer width="100%" height={280}>
+                <BarChart data={INCIDENT_ANALYTICS.byLocation} layout="vertical">
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                  <XAxis type="number" stroke="#9CA3AF" />
+                  <YAxis dataKey="location" type="category" stroke="#9CA3AF" width={120} tick={{ fontSize: 12 }} />
+                  <Tooltip contentStyle={{ backgroundColor: '#1F2937', border: '1px solid #374151' }} />
+                  <Bar dataKey="incidents" fill="#3B82F6" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
+              <h3 className="text-lg font-semibold text-white mb-4">Incidents by Occupation</h3>
+              <ResponsiveContainer width="100%" height={280}>
+                <BarChart data={INCIDENT_ANALYTICS.byOccupation}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                  <XAxis dataKey="occupation" stroke="#9CA3AF" tick={{ fontSize: 10 }} angle={-45} textAnchor="end" height={80} />
+                  <YAxis stroke="#9CA3AF" />
+                  <Tooltip contentStyle={{ backgroundColor: '#1F2937', border: '1px solid #374151' }} />
+                  <Bar dataKey="incidents" fill="#F59E0B" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Shift Analysis */}
+          <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
+            <h3 className="text-lg font-semibold text-white mb-4">Incidents by Shift</h3>
+            <div className="grid grid-cols-3 gap-4">
+              {INCIDENT_ANALYTICS.byShift.map((shift) => (
+                <div key={shift.shift} className="p-4 bg-gray-900 rounded-lg">
+                  <p className="text-white font-medium">{shift.shift}</p>
+                  <div className="flex items-end gap-3 mt-2">
+                    <p className="text-3xl font-bold text-blue-400">{shift.incidents}</p>
+                    <p className="text-gray-500 mb-1">({shift.percentage}%)</p>
+                  </div>
+                  <div className="mt-2 h-2 bg-gray-700 rounded-full overflow-hidden">
+                    <div className="h-full bg-blue-500 rounded-full" style={{ width: `${shift.percentage}%` }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* High Risk Locations */}
+          <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
+            <h3 className="text-lg font-semibold text-white mb-4">High Risk Locations</h3>
+            <div className="grid grid-cols-6 gap-3">
+              {INCIDENT_ANALYTICS.byLocation.map((loc) => (
+                <div key={loc.location} className={`p-4 rounded-lg text-center ${loc.severity === 'high' ? 'bg-red-500/20 border border-red-500/50' : loc.severity === 'medium' ? 'bg-yellow-500/20 border border-yellow-500/50' : 'bg-green-500/20 border border-green-500/50'}`}>
+                  <p className="text-white font-medium text-sm">{loc.location}</p>
+                  <p className={`text-2xl font-bold mt-1 ${loc.severity === 'high' ? 'text-red-400' : loc.severity === 'medium' ? 'text-yellow-400' : 'text-green-400'}`}>{loc.incidents}</p>
+                  <p className="text-xs text-gray-400">incidents</p>
+                </div>
+              ))}
             </div>
           </div>
         </div>
