@@ -152,11 +152,11 @@ export default function DashboardLayout() {
 
       {/* Sidebar */}
       <aside className={clsx(
-        'fixed inset-y-0 left-0 z-50 w-64 bg-dashboard-card border-r border-dashboard-border transform transition-transform duration-300 lg:translate-x-0',
+        'fixed inset-y-0 left-0 z-50 w-64 bg-dashboard-card border-r border-dashboard-border transform transition-transform duration-300 lg:translate-x-0 flex flex-col',
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
       )}>
-        {/* Logo */}
-        <div className="flex items-center gap-3 px-6 py-5 border-b border-dashboard-border">
+        {/* Logo - Fixed at top */}
+        <div className="flex-shrink-0 flex items-center gap-3 px-6 py-5 border-b border-dashboard-border">
           <img 
             src="/isoguard-logo.svg" 
             alt="IsoGuard.Ai" 
@@ -164,8 +164,8 @@ export default function DashboardLayout() {
           />
         </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+        {/* Navigation - Scrollable */}
+        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
           {/* Main Navigation */}
           {mainNavigation.map((item) => {
             const isActive = location.pathname === item.href
@@ -289,8 +289,8 @@ export default function DashboardLayout() {
           })}
         </nav>
 
-        {/* User section */}
-        <div className="px-4 py-4 border-t border-dashboard-border">
+        {/* User section - Fixed at bottom */}
+        <div className="flex-shrink-0 px-4 py-4 border-t border-dashboard-border">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-full bg-primary-600 flex items-center justify-center">
               <span className="text-sm font-medium text-white">JD</span>
