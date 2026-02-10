@@ -1,0 +1,82 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-dashboard-bg text-gray-100 antialiased;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-primary-600 border border-transparent rounded-lg shadow-sm hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors duration-200;
+  }
+  
+  .btn-secondary {
+    @apply inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-gray-300 bg-dashboard-card border border-dashboard-border rounded-lg shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-200;
+  }
+  
+  .card {
+    @apply bg-dashboard-card border border-dashboard-border rounded-xl shadow-lg;
+  }
+  
+  .card-header {
+    @apply px-6 py-4 border-b border-dashboard-border;
+  }
+  
+  .card-body {
+    @apply p-6;
+  }
+  
+  .stat-card {
+    @apply card p-6 hover:border-primary-500/50 transition-colors duration-300;
+  }
+  
+  .input-field {
+    @apply block w-full px-3 py-2 text-sm text-gray-100 bg-dashboard-bg border border-dashboard-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 placeholder-gray-500;
+  }
+  
+  .sidebar-link {
+    @apply flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-400 rounded-lg hover:bg-dashboard-card hover:text-white transition-colors duration-200;
+  }
+  
+  .sidebar-link-active {
+    @apply bg-primary-600/20 text-primary-400 border-l-2 border-primary-500;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1e293b;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #475569;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
+/* Animations */
+.animate-in {
+  animation: slideUp 0.3s ease-out forwards;
+}
+
+/* Risk score colors */
+.risk-critical { @apply text-red-500; }
+.risk-high { @apply text-orange-500; }
+.risk-medium { @apply text-yellow-500; }
+.risk-low { @apply text-green-500; }
+
+/* Chart container */
+.chart-container {
+  @apply relative w-full h-64;
+}

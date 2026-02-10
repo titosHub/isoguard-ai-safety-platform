@@ -1,0 +1,454 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: SafetyVision Industrial Safety Platform - Complete AWS Infrastructure
+
+Parameters:
+  Environment:
+    Type: String
+    Default: production
+    AllowedValues: [development, staging, production]
+  
+  DBUsername:
+    Type: String
+    Default: safetyvision_admin
+    NoEcho: true
+  
+  DBPassword:
+    Type: String
+    NoEcho: true
+    MinLength: 8
+
+Globals:
+  Function:
+    Runtime: python3.11
+    Timeout: 30
+    MemorySize: 256
+    Environment:
+      Variables:
+        ENVIRONMENT: !Ref Environment
+        S3_BUCKET: !Ref EvidenceBucket
+        DYNAMODB_TABLE: !Ref DetectionsTable
+        RDS_CLUSTER_ARN: !GetAtt RDSCluster.DBClusterArn
+        RDS_SECRET_ARN: !Ref RDSSecret
+        RDS_DATABASE: safetyvision
+        SNS_TOPIC_ARN: !Ref AlertsTopic
+
+Resources:
+  # ========== S3 BUCKETS ==========
+  EvidenceBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub safetyvision-evidence-${Environment}-${AWS::AccountId}
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      LifecycleConfiguration:
+        Rules:
+          - Id: MoveToGlacier
+            Status: Enabled
+            Transitions:
+              - StorageClass: GLACIER
+                TransitionInDays: 90
+          - Id: DeleteOldEvidence
+            Status: Enabled
+            ExpirationInDays: 365
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders: ['*']
+            AllowedMethods: [GET, PUT, POST]
+            AllowedOrigins: ['*']
+            MaxAge: 3600
+      Tags:
+        - Key: Application
+          Value: SafetyVision
+
+  # ========== DYNAMODB ==========
+  DetectionsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub safetyvision-detections-${Environment}
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: detection_id
+          AttributeType: S
+        - AttributeName: site_id
+          AttributeType: S
+        - AttributeName: timestamp
+          AttributeType: S
+      KeySchema:
+        - AttributeName: detection_id
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: site-timestamp-index
+          KeySchema:
+            - AttributeName: site_id
+              KeyType: HASH
+            - AttributeName: timestamp
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      Tags:
+        - Key: Application
+          Value: SafetyVision
+
+  # ========== RDS POSTGRESQL ==========
+  RDSSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Subnet group for SafetyVision RDS
+      SubnetIds:
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
+
+  RDSSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for SafetyVision RDS
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          SourceSecurityGroupId: !Ref LambdaSecurityGroup
+
+  RDSSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: !Sub safetyvision-rds-${Environment}
+      SecretString: !Sub '{"username":"${DBUsername}","password":"${DBPassword}"}'
+
+  RDSCluster:
+    Type: AWS::RDS::DBCluster
+    Properties:
+      DBClusterIdentifier: !Sub safetyvision-${Environment}
+      Engine: aurora-postgresql
+      EngineMode: serverless
+      EngineVersion: '13.9'
+      DatabaseName: safetyvision
+      MasterUsername: !Ref DBUsername
+      MasterUserPassword: !Ref DBPassword
+      DBSubnetGroupName: !Ref RDSSubnetGroup
+      VpcSecurityGroupIds:
+        - !Ref RDSSecurityGroup
+      EnableHttpEndpoint: true
+      ScalingConfiguration:
+        AutoPause: true
+        MinCapacity: 2
+        MaxCapacity: 16
+        SecondsUntilAutoPause: 300
+      BackupRetentionPeriod: 7
+      DeletionProtection: true
+      Tags:
+        - Key: Application
+          Value: SafetyVision
+
+  # ========== SNS ALERTS ==========
+  AlertsTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub safetyvision-alerts-${Environment}
+      DisplayName: SafetyVision Alerts
+
+  # ========== API GATEWAY ==========
+  ApiGateway:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name: !Sub safetyvision-api-${Environment}
+      ProtocolType: HTTP
+      CorsConfiguration:
+        AllowHeaders: ['*']
+        AllowMethods: ['*']
+        AllowOrigins: ['*']
+
+  ApiStage:
+    Type: AWS::ApiGatewayV2::Stage
+    Properties:
+      ApiId: !Ref ApiGateway
+      StageName: !Ref Environment
+      AutoDeploy: true
+
+  # ========== LAMBDA FUNCTIONS ==========
+  LambdaSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for Lambda functions
+      VpcId: !Ref VPC
+
+  LambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+      Policies:
+        - PolicyName: SafetyVisionLambdaPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:ListBucket
+                Resource:
+                  - !GetAtt EvidenceBucket.Arn
+                  - !Sub ${EvidenceBucket.Arn}/*
+              - Effect: Allow
+                Action:
+                  - dynamodb:GetItem
+                  - dynamodb:PutItem
+                  - dynamodb:Query
+                  - dynamodb:Scan
+                Resource:
+                  - !GetAtt DetectionsTable.Arn
+                  - !Sub ${DetectionsTable.Arn}/index/*
+              - Effect: Allow
+                Action:
+                  - rds-data:ExecuteStatement
+                  - rds-data:BatchExecuteStatement
+                Resource: !GetAtt RDSCluster.DBClusterArn
+              - Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource: !Ref RDSSecret
+              - Effect: Allow
+                Action:
+                  - sns:Publish
+                Resource: !Ref AlertsTopic
+
+  # Detection Functions
+  ReceiveDetectionFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub safetyvision-receive-detection-${Environment}
+      CodeUri: ../lambda/
+      Handler: handlers.receive_detection
+      Role: !GetAtt LambdaRole.Arn
+      VpcConfig:
+        SecurityGroupIds: [!Ref LambdaSecurityGroup]
+        SubnetIds: [!Ref PrivateSubnet1, !Ref PrivateSubnet2]
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref ApiGateway
+            Path: /api/detections
+            Method: POST
+
+  GetDetectionsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub safetyvision-get-detections-${Environment}
+      CodeUri: ../lambda/
+      Handler: handlers.get_detections
+      Role: !GetAtt LambdaRole.Arn
+      VpcConfig:
+        SecurityGroupIds: [!Ref LambdaSecurityGroup]
+        SubnetIds: [!Ref PrivateSubnet1, !Ref PrivateSubnet2]
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref ApiGateway
+            Path: /api/detections
+            Method: GET
+
+  # Evidence Functions
+  GetUploadUrlFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub safetyvision-get-upload-url-${Environment}
+      CodeUri: ../lambda/
+      Handler: handlers.get_upload_url
+      Role: !GetAtt LambdaRole.Arn
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref ApiGateway
+            Path: /api/evidence/upload-url
+            Method: POST
+
+  GetEvidenceUrlFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub safetyvision-get-evidence-url-${Environment}
+      CodeUri: ../lambda/
+      Handler: handlers.get_evidence_url
+      Role: !GetAtt LambdaRole.Arn
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref ApiGateway
+            Path: /api/evidence/{detection_id}/url
+            Method: GET
+
+  # Alert Functions
+  ReceiveAlertFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub safetyvision-receive-alert-${Environment}
+      CodeUri: ../lambda/
+      Handler: handlers.receive_alert
+      Role: !GetAtt LambdaRole.Arn
+      VpcConfig:
+        SecurityGroupIds: [!Ref LambdaSecurityGroup]
+        SubnetIds: [!Ref PrivateSubnet1, !Ref PrivateSubnet2]
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref ApiGateway
+            Path: /api/alerts
+            Method: POST
+
+  GetAlertsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub safetyvision-get-alerts-${Environment}
+      CodeUri: ../lambda/
+      Handler: handlers.get_alerts
+      Role: !GetAtt LambdaRole.Arn
+      VpcConfig:
+        SecurityGroupIds: [!Ref LambdaSecurityGroup]
+        SubnetIds: [!Ref PrivateSubnet1, !Ref PrivateSubnet2]
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref ApiGateway
+            Path: /api/alerts
+            Method: GET
+
+  AcknowledgeAlertFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub safetyvision-acknowledge-alert-${Environment}
+      CodeUri: ../lambda/
+      Handler: handlers.acknowledge_alert
+      Role: !GetAtt LambdaRole.Arn
+      VpcConfig:
+        SecurityGroupIds: [!Ref LambdaSecurityGroup]
+        SubnetIds: [!Ref PrivateSubnet1, !Ref PrivateSubnet2]
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref ApiGateway
+            Path: /api/alerts/{alert_id}/acknowledge
+            Method: PUT
+
+  # Analytics Function
+  GetAnalyticsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub safetyvision-get-analytics-${Environment}
+      CodeUri: ../lambda/
+      Handler: handlers.get_analytics
+      Role: !GetAtt LambdaRole.Arn
+      VpcConfig:
+        SecurityGroupIds: [!Ref LambdaSecurityGroup]
+        SubnetIds: [!Ref PrivateSubnet1, !Ref PrivateSubnet2]
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref ApiGateway
+            Path: /api/analytics
+            Method: GET
+
+  # Edge Device Functions
+  RegisterEdgeDeviceFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub safetyvision-register-edge-${Environment}
+      CodeUri: ../lambda/
+      Handler: handlers.register_edge_device
+      Role: !GetAtt LambdaRole.Arn
+      VpcConfig:
+        SecurityGroupIds: [!Ref LambdaSecurityGroup]
+        SubnetIds: [!Ref PrivateSubnet1, !Ref PrivateSubnet2]
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref ApiGateway
+            Path: /api/edge-devices
+            Method: POST
+
+  HeartbeatFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub safetyvision-heartbeat-${Environment}
+      CodeUri: ../lambda/
+      Handler: handlers.heartbeat
+      Role: !GetAtt LambdaRole.Arn
+      VpcConfig:
+        SecurityGroupIds: [!Ref LambdaSecurityGroup]
+        SubnetIds: [!Ref PrivateSubnet1, !Ref PrivateSubnet2]
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref ApiGateway
+            Path: /api/edge-devices/{device_id}/heartbeat
+            Method: POST
+
+  # ========== VPC ==========
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      Tags:
+        - Key: Name
+          Value: !Sub safetyvision-vpc-${Environment}
+
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.1.0/24
+      AvailabilityZone: !Select [0, !GetAZs '']
+      Tags:
+        - Key: Name
+          Value: !Sub safetyvision-private-1-${Environment}
+
+  PrivateSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.2.0/24
+      AvailabilityZone: !Select [1, !GetAZs '']
+      Tags:
+        - Key: Name
+          Value: !Sub safetyvision-private-2-${Environment}
+
+Outputs:
+  ApiEndpoint:
+    Description: API Gateway endpoint URL
+    Value: !Sub https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/${Environment}
+  
+  EvidenceBucketName:
+    Description: S3 bucket for evidence storage
+    Value: !Ref EvidenceBucket
+  
+  RDSClusterEndpoint:
+    Description: RDS cluster endpoint
+    Value: !GetAtt RDSCluster.Endpoint.Address
+  
+  AlertsTopicArn:
+    Description: SNS topic for alerts
+    Value: !Ref AlertsTopic

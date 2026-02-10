@@ -1,0 +1,99 @@
+version: '3.8'
+
+services:
+  # SafetyVision API Backend
+  api:
+    build:
+      context: ../..
+      dockerfile: deployment/edge/Dockerfile
+    container_name: safetyvision-api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=production
+      - DATABASE_URL=postgresql+asyncpg://postgres:${DB_PASSWORD}@db:5432/safetyvision
+      - REDIS_URL=redis://redis:6379/0
+      - MODEL_PATH=/app/models/safety_detection.pt
+    volumes:
+      - ./models:/app/models
+      - ./output:/app/output
+      - ./configs:/app/configs
+    depends_on:
+      - db
+      - redis
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    container_name: safetyvision-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=safetyvision
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: safetyvision-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  # Frontend (Nginx)
+  frontend:
+    build:
+      context: ../../../frontend
+      dockerfile: ../backend/deployment/edge/Dockerfile.frontend
+    container_name: safetyvision-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - api
+
+  # AI Inference Worker (for heavy processing)
+  inference-worker:
+    build:
+      context: ../..
+      dockerfile: deployment/edge/Dockerfile.worker
+    container_name: safetyvision-worker
+    restart: unless-stopped
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - MODEL_PATH=/app/models/safety_detection.pt
+    volumes:
+      - ./models:/app/models
+      - ./output:/app/output
+    depends_on:
+      - redis
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  default:
+    name: safetyvision-network
