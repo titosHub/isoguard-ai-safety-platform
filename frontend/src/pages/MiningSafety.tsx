@@ -1,27 +1,24 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   ShieldExclamationIcon,
   ExclamationTriangleIcon,
-  UserGroupIcon,
-  ClockIcon,
-  MapPinIcon,
-  VideoCameraIcon,
-  BellAlertIcon,
+  ChartBarIcon,
+  CubeIcon,
+  CloudIcon,
+  HeartIcon,
+  DocumentChartBarIcon,
+  DocumentTextIcon,
+  AcademicCapIcon,
+  BeakerIcon,
+  PaperAirplaneIcon,
   CheckCircleIcon,
   XCircleIcon,
   ArrowTrendingDownIcon,
   ArrowTrendingUpIcon,
-  ChartBarIcon,
-  CubeIcon,
-  FireIcon,
-  SpeakerWaveIcon,
-  CloudIcon,
-  TruckIcon,
-  WrenchScrewdriverIcon,
-  HeartIcon,
-  DocumentChartBarIcon,
-  CalendarDaysIcon,
+  ExclamationCircleIcon,
+  ArrowPathIcon,
+  LightBulbIcon,
 } from '@heroicons/react/24/outline';
 import {
   BarChart,
@@ -37,242 +34,170 @@ import {
   Pie,
   Cell,
   Legend,
+  AreaChart,
+  Area,
 } from 'recharts';
 
 // Types
-interface SafetyAlert {
+interface IncidentReport {
   id: string;
-  type: 'fog' | 'tmm_collision' | 'ppe_violation' | 'air_quality' | 'noise_level' | 'fire_detection' | 'seismic' | 'confined_space' | 'equipment_malfunction';
-  severity: 'critical' | 'high' | 'medium' | 'low';
+  mineName: string;
+  rightNumber: string;
+  shaftSection: string;
+  dateTime: string;
+  incidentType: 'fatality' | 'lti' | 'mti' | 'fai' | 'near_miss' | 'dangerous_occurrence';
+  occupation: string;
+  ppeWorn: boolean;
+  ppeType: string[];
+  immediateCause: string;
+  rootCause: 'human' | 'equipment' | 'environmental';
+  correctiveActions: string;
+  inspectorNotified: string;
+  status: 'draft' | 'pending' | 'submitted' | 'acknowledged';
+}
+
+interface DustReading {
+  id: string;
   location: string;
-  zone: string;
-  camera: string;
-  timestamp: string;
-  status: 'active' | 'investigating' | 'resolved' | 'false_alarm';
-  description: string;
-  commodity: 'gold' | 'platinum' | 'coal' | 'chrome' | 'other';
-  durationSeconds?: number;
-  readings?: { label: string; value: string; status: 'normal' | 'warning' | 'critical' }[];
+  dustType: 'rcs' | 'coal' | 'dpm';
+  exposure: number;
+  limit: number;
+  shiftDuration: number;
+  samplingMethod: string;
+  respiratorType: string;
+  exceedance: boolean;
+  date: string;
 }
 
-interface CommodityStats {
-  name: string;
-  fatalities2021: number;
-  fatalities2022: number;
-  injuries2021: number;
-  injuries2022: number;
-  improvement: number;
-  color: string;
-}
+// Tab configuration
+const TABS = [
+  { id: 'overview', label: 'Overview', icon: ChartBarIcon },
+  { id: 'incidents', label: 'Incidents & Accidents', icon: ExclamationTriangleIcon },
+  { id: 'dust', label: 'Dust & Hygiene', icon: CloudIcon },
+  { id: 'health', label: 'Health Surveillance', icon: HeartIcon },
+  { id: 'training', label: 'Training & Competency', icon: AcademicCapIcon },
+  { id: 'equipment', label: 'Equipment & PPE', icon: ShieldExclamationIcon },
+  { id: 'environmental', label: 'Environmental', icon: BeakerIcon },
+  { id: 'predictive', label: 'Predictive AI', icon: LightBulbIcon },
+  { id: 'submit', label: 'Submit to Board', icon: PaperAirplaneIcon },
+];
 
-interface OccupationalHealth {
-  disease: string;
-  cases2020: number;
-  cases2021: number;
-  change: number;
-  icon: typeof HeartIcon;
-  color: string;
-}
+// Demo data
+const DEMO_INCIDENTS: IncidentReport[] = [
+  { id: 'INC-001', mineName: 'Gold Mine Alpha', rightNumber: 'MR-2024-001', shaftSection: 'Level 3 Stope', dateTime: '2024-02-08T14:30:00', incidentType: 'near_miss', occupation: 'Rock Drill Operator', ppeWorn: true, ppeType: ['Helmet', 'Respirator'], immediateCause: 'Rock fall', rootCause: 'environmental', correctiveActions: 'Support installation reviewed', inspectorNotified: '2024-02-08T15:00:00', status: 'submitted' },
+  { id: 'INC-002', mineName: 'Platinum Mine Beta', rightNumber: 'MR-2024-002', shaftSection: 'Main Decline', dateTime: '2024-02-07T08:15:00', incidentType: 'lti', occupation: 'Winch Operator', ppeWorn: true, ppeType: ['Helmet', 'Gloves', 'Safety boots'], immediateCause: 'Equipment malfunction', rootCause: 'equipment', correctiveActions: 'Winch replaced, training refreshed', inspectorNotified: '2024-02-07T09:00:00', status: 'acknowledged' },
+  { id: 'INC-003', mineName: 'Coal Mine Gamma', rightNumber: 'MR-2024-003', shaftSection: 'Conveyor Section', dateTime: '2024-02-06T22:45:00', incidentType: 'dangerous_occurrence', occupation: 'Belt Attendant', ppeWorn: false, ppeType: [], immediateCause: 'Belt fire', rootCause: 'equipment', correctiveActions: 'Fire suppression upgraded', inspectorNotified: '2024-02-06T23:00:00', status: 'pending' },
+];
 
-// Alert type configurations
-const ALERT_TYPES = {
-  fog: { label: 'Fall of Ground', icon: CubeIcon, color: 'text-red-500', bg: 'bg-red-500/20', description: 'Rock instability detected' },
-  tmm_collision: { label: 'TMM Collision Risk', icon: TruckIcon, color: 'text-orange-500', bg: 'bg-orange-500/20', description: 'Vehicle proximity warning' },
-  ppe_violation: { label: 'PPE Violation', icon: ShieldExclamationIcon, color: 'text-yellow-500', bg: 'bg-yellow-500/20', description: 'Safety equipment not detected' },
-  air_quality: { label: 'Air Quality Alert', icon: CloudIcon, color: 'text-purple-500', bg: 'bg-purple-500/20', description: 'Dust/silica levels elevated' },
-  noise_level: { label: 'Noise Level Warning', icon: SpeakerWaveIcon, color: 'text-blue-500', bg: 'bg-blue-500/20', description: 'Hazardous noise exposure' },
-  fire_detection: { label: 'Fire/Smoke Detected', icon: FireIcon, color: 'text-red-600', bg: 'bg-red-600/20', description: 'Thermal anomaly detected' },
-  seismic: { label: 'Seismic Activity', icon: ExclamationTriangleIcon, color: 'text-amber-500', bg: 'bg-amber-500/20', description: 'Ground movement detected' },
-  confined_space: { label: 'Confined Space', icon: MapPinIcon, color: 'text-cyan-500', bg: 'bg-cyan-500/20', description: 'Personnel in restricted area' },
-  equipment_malfunction: { label: 'Equipment Issue', icon: WrenchScrewdriverIcon, color: 'text-gray-400', bg: 'bg-gray-500/20', description: 'Machinery malfunction detected' },
+const DEMO_DUST_READINGS: DustReading[] = [
+  { id: 'DUST-001', location: 'Level 2 Stope Face', dustType: 'rcs', exposure: 0.08, limit: 0.05, shiftDuration: 8, samplingMethod: 'Gravimetric', respiratorType: 'P3 Half-mask', exceedance: true, date: '2024-02-08' },
+  { id: 'DUST-002', location: 'Main Haul Road', dustType: 'coal', exposure: 1.8, limit: 2.0, shiftDuration: 8, samplingMethod: 'Gravimetric', respiratorType: 'P2 Half-mask', exceedance: false, date: '2024-02-08' },
+  { id: 'DUST-003', location: 'Equipment Bay', dustType: 'dpm', exposure: 0.12, limit: 0.16, shiftDuration: 10, samplingMethod: 'EC/OC', respiratorType: 'P3 Full-face', exceedance: false, date: '2024-02-08' },
+  { id: 'DUST-004', location: 'Crusher Area', dustType: 'rcs', exposure: 0.06, limit: 0.05, shiftDuration: 8, samplingMethod: 'Gravimetric', respiratorType: 'P3 Half-mask', exceedance: true, date: '2024-02-07' },
+];
+
+const HEALTH_STATS = {
+  totalScreened: 4250,
+  lungFunctionNormal: 3820,
+  lungFunctionAbnormal: 430,
+  tbScreened: 4250,
+  tbPositive: 23,
+  nihlCases: 156,
+  silicosisNew: 12,
+  compensationClaims: 45,
 };
 
-const COMMODITY_COLORS = {
-  gold: '#FFD700',
-  platinum: '#E5E4E2',
-  coal: '#36454F',
-  chrome: '#4A90A4',
-  other: '#8B5CF6',
+const TRAINING_COMPLIANCE = {
+  safetyInductions: { completed: 4150, total: 4250, percentage: 97.6 },
+  ppeTraining: { completed: 4080, total: 4250, percentage: 96.0 },
+  competencyCerts: { valid: 3950, expiring: 180, expired: 120 },
+  refresherTraining: { upToDate: 3800, due: 450 },
+  toolboxTalks: { thisMonth: 124, target: 130 },
 };
 
-// Demo data based on Ministry statistics
-const COMMODITY_STATS: CommodityStats[] = [
-  { name: 'Gold', fatalities2021: 30, fatalities2022: 15, injuries2021: 738, injuries2022: 586, improvement: 50, color: '#FFD700' },
-  { name: 'Platinum', fatalities2021: 21, fatalities2022: 18, injuries2021: 1027, injuries2022: 1030, improvement: 14, color: '#E5E4E2' },
-  { name: 'Coal', fatalities2021: 10, fatalities2022: 5, injuries2021: 170, injuries2022: 180, improvement: 50, color: '#36454F' },
-  { name: 'Other', fatalities2021: 13, fatalities2022: 11, injuries2021: 208, injuries2022: 260, improvement: 15, color: '#8B5CF6' },
-];
+const EQUIPMENT_COMPLIANCE = {
+  ppeIssued: 4250,
+  ppeInspectionsPassed: 4100,
+  ppeInspectionsFailed: 150,
+  equipmentBreakdowns: 23,
+  lotoViolations: 5,
+  machineGuardingCompliance: 96.8,
+};
 
-const ACCIDENT_CAUSES = [
-  { name: 'TMM/Transport', fatalities2021: 16, fatalities2022: 17, injuries2021: 329, injuries2022: 376 },
-  { name: 'General Hazards', fatalities2021: 21, fatalities2022: 16, injuries2021: 1171, injuries2022: 1124 },
-  { name: 'Fall of Ground', fatalities2021: 20, fatalities2022: 6, injuries2021: 373, injuries2022: 295 },
-];
+const ENVIRONMENTAL_DATA = {
+  ventilation: [
+    { location: 'Level 1', airflow: 45.2, required: 40, status: 'ok' },
+    { location: 'Level 2', airflow: 38.5, required: 40, status: 'warning' },
+    { location: 'Level 3', airflow: 42.1, required: 40, status: 'ok' },
+  ],
+  gasLevels: [
+    { gas: 'CH₄ (Methane)', level: 0.3, limit: 1.0, unit: '%' },
+    { gas: 'CO (Carbon Monoxide)', level: 12, limit: 30, unit: 'ppm' },
+    { gas: 'NO₂ (Nitrogen Dioxide)', level: 1.2, limit: 3.0, unit: 'ppm' },
+    { gas: 'H₂S (Hydrogen Sulfide)', level: 2.1, limit: 10, unit: 'ppm' },
+  ],
+  temperature: 28.5,
+  humidity: 78,
+};
 
-const OCCUPATIONAL_HEALTH: OccupationalHealth[] = [
-  { disease: 'Silicosis', cases2020: 271, cases2021: 240, change: -11.4, icon: CloudIcon, color: 'text-purple-400' },
-  { disease: 'Pulmonary TB', cases2020: 849, cases2021: 793, change: -6.6, icon: HeartIcon, color: 'text-red-400' },
-  { disease: 'NIHL', cases2020: 738, cases2021: 776, change: 5.2, icon: SpeakerWaveIcon, color: 'text-blue-400' },
-];
-
-const MINE_ZONES = [
-  'Shaft Level 1 - Main Excavation',
-  'Shaft Level 2 - Development Area',
-  'Shaft Level 3 - Stope Mining',
-  'Surface Operations',
-  'Processing Plant',
-  'Conveyor System',
-  'Ventilation Shaft',
-  'Equipment Bay',
-];
-
-const MINE_CAMERAS = [
-  'Underground Cam L1-A',
-  'Underground Cam L2-B',
-  'Stope Face Cam',
-  'Conveyor Monitoring Cam',
-  'Processing Area Cam',
-  'Equipment Bay Cam',
-  'Surface Operations Cam',
-  'Ventilation Shaft Cam',
-];
-
-// Generate demo alerts
-const generateAlerts = (): SafetyAlert[] => {
-  const alerts: SafetyAlert[] = [];
-  const types: Array<SafetyAlert['type']> = ['fog', 'tmm_collision', 'ppe_violation', 'air_quality', 'noise_level', 'fire_detection', 'seismic', 'confined_space'];
-  const severities: Array<SafetyAlert['severity']> = ['critical', 'high', 'medium', 'low'];
-  const statuses: Array<SafetyAlert['status']> = ['active', 'investigating', 'resolved', 'false_alarm'];
-  const commodities: Array<SafetyAlert['commodity']> = ['gold', 'platinum', 'coal', 'chrome', 'other'];
-
-  for (let i = 0; i < 20; i++) {
-    const type = types[Math.floor(Math.random() * types.length)];
-    const zone = MINE_ZONES[Math.floor(Math.random() * MINE_ZONES.length)];
-    const camera = MINE_CAMERAS[Math.floor(Math.random() * MINE_CAMERAS.length)];
-    const commodity = commodities[Math.floor(Math.random() * commodities.length)];
-
-    const readings: { label: string; value: string; status: 'normal' | 'warning' | 'critical' }[] | undefined = type === 'air_quality' ? [
-      { label: 'Dust Level', value: `${(Math.random() * 5 + 2).toFixed(1)} mg/m³`, status: Math.random() > 0.5 ? 'warning' as const : 'critical' as const },
-      { label: 'Silica', value: `${(Math.random() * 0.1).toFixed(3)} mg/m³`, status: 'warning' as const },
-      { label: 'Ventilation', value: `${Math.floor(60 + Math.random() * 40)}%`, status: 'normal' as const },
-    ] : type === 'noise_level' ? [
-      { label: 'Current Level', value: `${Math.floor(85 + Math.random() * 20)} dB`, status: 'critical' as const },
-      { label: 'Exposure Time', value: `${Math.floor(2 + Math.random() * 6)}h`, status: 'warning' as const },
-      { label: 'Peak', value: `${Math.floor(100 + Math.random() * 15)} dB`, status: 'critical' as const },
-    ] : undefined;
-
-    alerts.push({
-      id: `alert-${i + 1}`,
-      type,
-      severity: type === 'fog' || type === 'fire_detection' || type === 'seismic'
-        ? (Math.random() > 0.3 ? 'critical' : 'high')
-        : severities[Math.floor(Math.random() * severities.length)],
-      location: `${commodity.charAt(0).toUpperCase() + commodity.slice(1)} Mine - ${zone}`,
-      zone,
-      camera,
-      timestamp: new Date(Date.now() - Math.random() * 3600000 * 8).toISOString(),
-      status: i < 4 ? 'active' : statuses[Math.floor(Math.random() * statuses.length)],
-      description: ALERT_TYPES[type].description,
-      commodity,
-      durationSeconds: Math.floor(30 + Math.random() * 600),
-      readings,
-    });
-  }
-
-  return alerts.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+const PREDICTIVE_DATA = {
+  dustRiskIndex: [
+    { shaft: 'Level 1', risk: 42, trend: 'stable' },
+    { shaft: 'Level 2', risk: 78, trend: 'increasing' },
+    { shaft: 'Level 3', risk: 35, trend: 'decreasing' },
+    { shaft: 'Surface', risk: 22, trend: 'stable' },
+  ],
+  ppeNonCompliance: [
+    { zone: 'Stope Face', probability: 23, incidents: 12 },
+    { zone: 'Haul Road', probability: 45, incidents: 28 },
+    { zone: 'Equipment Bay', probability: 18, incidents: 8 },
+    { zone: 'Processing', probability: 31, incidents: 15 },
+  ],
+  injuryLikelihood: { next30: 12, next60: 28, next90: 45 },
+  aiInsights: [
+    { type: 'warning', message: 'Level 2 has 63% probability of dust exceedance in 14 days', confidence: 87 },
+    { type: 'alert', message: 'Ventilation degradation correlated with PPE non-compliance in Stope area', confidence: 92 },
+    { type: 'info', message: 'Near-miss frequency increased 23% in night shift - recommend intervention', confidence: 78 },
+    { type: 'success', message: 'FOG incidents reduced 45% after support pattern changes', confidence: 95 },
+  ],
 };
 
 export default function MiningSafety() {
-  const [alerts, setAlerts] = useState<SafetyAlert[]>([]);
-  const [selectedAlert, setSelectedAlert] = useState<SafetyAlert | null>(null);
-  const [typeFilter, setTypeFilter] = useState<string>('all');
-  const [commodityFilter, setCommodityFilter] = useState<string>('all');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [activeTab, setActiveTab] = useState<'realtime' | 'statistics' | 'health' | 'compliance'>('realtime');
+  const [activeTab, setActiveTab] = useState('overview');
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const [submissionStep, setSubmissionStep] = useState(0);
 
-  useEffect(() => {
-    setAlerts(generateAlerts());
-
-    // Simulate real-time alerts
-    const interval = setInterval(() => {
-      if (Math.random() > 0.6) {
-        const types: Array<SafetyAlert['type']> = ['fog', 'tmm_collision', 'ppe_violation', 'air_quality', 'noise_level'];
-        const type = types[Math.floor(Math.random() * types.length)];
-        const commodities: Array<SafetyAlert['commodity']> = ['gold', 'platinum', 'coal'];
-        const commodity = commodities[Math.floor(Math.random() * commodities.length)];
-        
-        const newAlert: SafetyAlert = {
-          id: `alert-${Date.now()}`,
-          type,
-          severity: Math.random() > 0.5 ? 'critical' : 'high',
-          location: `${commodity.charAt(0).toUpperCase() + commodity.slice(1)} Mine - ${MINE_ZONES[Math.floor(Math.random() * MINE_ZONES.length)]}`,
-          zone: MINE_ZONES[Math.floor(Math.random() * MINE_ZONES.length)],
-          camera: MINE_CAMERAS[Math.floor(Math.random() * MINE_CAMERAS.length)],
-          timestamp: new Date().toISOString(),
-          status: 'active',
-          description: 'New hazard detected - immediate attention required',
-          commodity,
-          durationSeconds: 0,
-        };
-        setAlerts(prev => [newAlert, ...prev.slice(0, 19)]);
-      }
-    }, 15000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  const filteredAlerts = alerts.filter(alert => {
-    if (typeFilter !== 'all' && alert.type !== typeFilter) return false;
-    if (commodityFilter !== 'all' && alert.commodity !== commodityFilter) return false;
-    if (statusFilter !== 'all' && alert.status !== statusFilter) return false;
-    return true;
-  });
-
-  const stats = {
-    total: alerts.length,
-    active: alerts.filter(a => a.status === 'active').length,
-    critical: alerts.filter(a => a.severity === 'critical' && a.status === 'active').length,
-    fogAlerts: alerts.filter(a => a.type === 'fog').length,
-    resolved: alerts.filter(a => a.status === 'resolved').length,
+  const getIncidentTypeLabel = (type: string) => {
+    const labels: Record<string, string> = {
+      fatality: 'Fatality',
+      lti: 'Lost Time Injury (LTI)',
+      mti: 'Medical Treatment Injury (MTI)',
+      fai: 'First Aid Injury (FAI)',
+      near_miss: 'Near Miss',
+      dangerous_occurrence: 'Dangerous Occurrence',
+    };
+    return labels[type] || type;
   };
 
-  const handleResolve = (alertId: string, resolution: 'resolved' | 'false_alarm') => {
-    setAlerts(prev => prev.map(a =>
-      a.id === alertId ? { ...a, status: resolution } : a
-    ));
-    setSelectedAlert(null);
+  const getIncidentTypeColor = (type: string) => {
+    const colors: Record<string, string> = {
+      fatality: 'bg-red-500',
+      lti: 'bg-orange-500',
+      mti: 'bg-yellow-500',
+      fai: 'bg-blue-500',
+      near_miss: 'bg-purple-500',
+      dangerous_occurrence: 'bg-pink-500',
+    };
+    return colors[type] || 'bg-gray-500';
   };
 
-  const formatTime = (timestamp: string) => {
-    const date = new Date(timestamp);
-    return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  const handleSubmitToBoard = () => {
+    setShowSubmitModal(true);
+    setSubmissionStep(1);
+    setTimeout(() => setSubmissionStep(2), 1500);
+    setTimeout(() => setSubmissionStep(3), 3000);
+    setTimeout(() => setSubmissionStep(4), 4500);
   };
-
-  const formatDuration = (seconds: number) => {
-    if (seconds < 60) return `${seconds}s`;
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}m ${secs}s`;
-  };
-
-  // Prepare chart data
-  const fatalityChartData = COMMODITY_STATS.map(c => ({
-    name: c.name,
-    '2021': c.fatalities2021,
-    '2022': c.fatalities2022,
-  }));
-
-  const causesChartData = ACCIDENT_CAUSES.map(c => ({
-    name: c.name,
-    Fatalities: c.fatalities2022,
-    Injuries: Math.round(c.injuries2022 / 10), // Scale down for visibility
-  }));
-
-  const pieData = COMMODITY_STATS.map(c => ({
-    name: c.name,
-    value: c.fatalities2022,
-    color: c.color,
-  }));
 
   return (
     <div className="space-y-6">
@@ -281,664 +206,536 @@ export default function MiningSafety() {
         <div>
           <h1 className="text-2xl font-bold text-white flex items-center gap-3">
             <CubeIcon className="w-8 h-8 text-amber-400" />
-            Mining Safety Monitor
+            Mining Safety & Compliance
           </h1>
-          <p className="text-gray-400 mt-1">AI-powered mine health and safety monitoring system</p>
+          <p className="text-gray-400 mt-1">DMRE Regulatory Compliance & AI-Powered Safety Monitoring</p>
         </div>
         <div className="flex items-center gap-3">
+          <button onClick={handleSubmitToBoard} className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+            <PaperAirplaneIcon className="w-5 h-5" />
+            Submit to Mining Board
+          </button>
           <span className="flex items-center gap-2 px-3 py-1.5 bg-green-500/20 text-green-400 rounded-full text-sm">
             <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-            All Systems Active
-          </span>
-          <span className="text-sm text-gray-500">
-            Last sync: {new Date().toLocaleTimeString()}
+            Systems Active
           </span>
         </div>
-      </div>
-
-      {/* Key Stats */}
-      <div className="grid grid-cols-5 gap-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-gray-800 rounded-xl p-4 border border-gray-700"
-        >
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-green-500/20 rounded-lg">
-              <ArrowTrendingDownIcon className="w-6 h-6 text-green-400" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-green-400">34%</p>
-              <p className="text-xs text-gray-500">Fatality Reduction</p>
-            </div>
-          </div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="bg-gray-800 rounded-xl p-4 border border-red-500/50"
-        >
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-red-500/20 rounded-lg">
-              <ExclamationTriangleIcon className="w-6 h-6 text-red-400" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-red-400">{stats.critical}</p>
-              <p className="text-xs text-gray-500">Critical Alerts</p>
-            </div>
-          </div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="bg-gray-800 rounded-xl p-4 border border-amber-500/50"
-        >
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-amber-500/20 rounded-lg">
-              <CubeIcon className="w-6 h-6 text-amber-400" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-amber-400">{stats.fogAlerts}</p>
-              <p className="text-xs text-gray-500">FOG Alerts</p>
-            </div>
-          </div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="bg-gray-800 rounded-xl p-4 border border-gray-700"
-        >
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-500/20 rounded-lg">
-              <BellAlertIcon className="w-6 h-6 text-blue-400" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-white">{stats.active}</p>
-              <p className="text-xs text-gray-500">Active Alerts</p>
-            </div>
-          </div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="bg-gray-800 rounded-xl p-4 border border-gray-700"
-        >
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-green-500/20 rounded-lg">
-              <CheckCircleIcon className="w-6 h-6 text-green-400" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-green-400">{stats.resolved}</p>
-              <p className="text-xs text-gray-500">Resolved Today</p>
-            </div>
-          </div>
-        </motion.div>
       </div>
 
       {/* Tab Navigation */}
-      <div className="flex gap-2 border-b border-gray-700 pb-2">
-        {[
-          { id: 'realtime', label: 'Real-time Monitoring', icon: VideoCameraIcon },
-          { id: 'statistics', label: 'Safety Statistics', icon: ChartBarIcon },
-          { id: 'health', label: 'Occupational Health', icon: HeartIcon },
-          { id: 'compliance', label: 'Compliance', icon: DocumentChartBarIcon },
-        ].map((tab) => (
+      <div className="flex gap-1 bg-gray-800 rounded-lg p-1 overflow-x-auto">
+        {TABS.map((tab) => (
           <button
             key={tab.id}
-            onClick={() => setActiveTab(tab.id as typeof activeTab)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-              activeTab === tab.id
-                ? 'bg-primary-600 text-white'
-                : 'text-gray-400 hover:text-white hover:bg-gray-800'
+            onClick={() => setActiveTab(tab.id)}
+            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
+              activeTab === tab.id ? 'bg-primary-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-700'
             }`}
           >
-            <tab.icon className="w-5 h-5" />
+            <tab.icon className="w-4 h-4" />
             {tab.label}
           </button>
         ))}
       </div>
 
-      {/* Tab Content */}
-      {activeTab === 'realtime' && (
-        <>
-          {/* Filters */}
-          <div className="flex gap-4">
-            <select
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
-              className="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white"
-            >
-              <option value="all">All Alert Types</option>
-              <option value="fog">Fall of Ground (FOG)</option>
-              <option value="tmm_collision">TMM Collision</option>
-              <option value="ppe_violation">PPE Violation</option>
-              <option value="air_quality">Air Quality</option>
-              <option value="noise_level">Noise Level</option>
-              <option value="fire_detection">Fire Detection</option>
-              <option value="seismic">Seismic Activity</option>
-              <option value="confined_space">Confined Space</option>
-            </select>
-
-            <select
-              value={commodityFilter}
-              onChange={(e) => setCommodityFilter(e.target.value)}
-              className="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white"
-            >
-              <option value="all">All Commodities</option>
-              <option value="gold">Gold</option>
-              <option value="platinum">Platinum</option>
-              <option value="coal">Coal</option>
-              <option value="chrome">Chrome</option>
-              <option value="other">Other</option>
-            </select>
-
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white"
-            >
-              <option value="all">All Status</option>
-              <option value="active">Active</option>
-              <option value="investigating">Investigating</option>
-              <option value="resolved">Resolved</option>
-              <option value="false_alarm">False Alarm</option>
-            </select>
-          </div>
-
-          {/* Main Content */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Alert List */}
-            <div className="lg:col-span-2 bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
-              <div className="p-4 border-b border-gray-700 flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-white">Safety Alerts</h2>
-                <span className="text-sm text-gray-500">{filteredAlerts.length} alerts</span>
-              </div>
-              <div className="divide-y divide-gray-700 max-h-[600px] overflow-y-auto">
-                {filteredAlerts.map((alert) => {
-                  const alertType = ALERT_TYPES[alert.type];
-                  const Icon = alertType.icon;
-
-                  return (
-                    <motion.div
-                      key={alert.id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      onClick={() => setSelectedAlert(alert)}
-                      className={`p-4 cursor-pointer hover:bg-gray-700/50 transition-colors ${
-                        alert.status === 'active' ? 'bg-red-500/10' : ''
-                      } ${selectedAlert?.id === alert.id ? 'bg-gray-700' : ''}`}
-                    >
-                      <div className="flex items-start gap-4">
-                        <div className={`p-2 rounded-lg ${alertType.bg}`}>
-                          <Icon className={`w-6 h-6 ${alertType.color}`} />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className={`font-medium ${alertType.color}`}>
-                              {alertType.label}
-                            </span>
-                            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                              alert.severity === 'critical' ? 'bg-red-500 text-white' :
-                              alert.severity === 'high' ? 'bg-orange-500 text-white' :
-                              alert.severity === 'medium' ? 'bg-yellow-500 text-black' :
-                              'bg-gray-500 text-white'
-                            }`}>
-                              {alert.severity}
-                            </span>
-                            <span className="px-2 py-0.5 rounded text-xs" style={{ backgroundColor: COMMODITY_COLORS[alert.commodity] + '40', color: COMMODITY_COLORS[alert.commodity] }}>
-                              {alert.commodity}
-                            </span>
-                            {alert.status === 'active' && (
-                              <span className="flex items-center gap-1 text-red-400 text-xs">
-                                <span className="w-1.5 h-1.5 bg-red-400 rounded-full animate-pulse" />
-                                ACTIVE
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-sm text-gray-400 mt-1">{alert.description}</p>
-                          <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
-                            <span className="flex items-center gap-1">
-                              <MapPinIcon className="w-3 h-3" />
-                              {alert.zone}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <ClockIcon className="w-3 h-3" />
-                              {formatTime(alert.timestamp)}
-                            </span>
-                            {alert.durationSeconds && (
-                              <span className="text-orange-400">
-                                Duration: {formatDuration(alert.durationSeconds)}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        <span className={`px-2 py-1 rounded text-xs ${
-                          alert.status === 'active' ? 'bg-red-500/20 text-red-400' :
-                          alert.status === 'investigating' ? 'bg-yellow-500/20 text-yellow-400' :
-                          alert.status === 'resolved' ? 'bg-green-500/20 text-green-400' :
-                          'bg-gray-500/20 text-gray-400'
-                        }`}>
-                          {alert.status.replace('_', ' ')}
-                        </span>
-                      </div>
-                    </motion.div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Alert Detail */}
-            <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
-              {selectedAlert ? (
-                <div className="p-4">
-                  <h3 className="text-lg font-semibold text-white mb-4">Alert Details</h3>
-
-                  {/* Simulated Camera Feed */}
-                  <div className="aspect-video bg-gray-900 rounded-lg mb-4 flex items-center justify-center relative overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-br from-gray-800 to-gray-900" />
-                    <div className="relative text-center">
-                      <VideoCameraIcon className="w-12 h-12 text-gray-600 mx-auto mb-2" />
-                      <p className="text-gray-500 text-sm">{selectedAlert.camera}</p>
-                      <p className="text-gray-600 text-xs">Underground Feed</p>
-                    </div>
-                    {selectedAlert.status === 'active' && (
-                      <div className="absolute top-2 right-2 flex items-center gap-1 px-2 py-1 bg-red-500 rounded text-xs text-white">
-                        <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
-                        LIVE
-                      </div>
-                    )}
-                    {selectedAlert.type === 'fog' && (
-                      <div className="absolute bottom-4 left-4 right-4">
-                        <div className="border-2 border-red-500 border-dashed rounded-lg p-2 bg-red-500/20">
-                          <p className="text-red-400 text-xs text-center">
-                            Rock instability zone detected
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Readings if available */}
-                  {selectedAlert.readings && (
-                    <div className="mb-4 p-3 bg-gray-900 rounded-lg">
-                      <p className="text-xs text-gray-500 mb-2">Sensor Readings</p>
-                      <div className="space-y-2">
-                        {selectedAlert.readings.map((reading, idx) => (
-                          <div key={idx} className="flex justify-between items-center">
-                            <span className="text-sm text-gray-400">{reading.label}</span>
-                            <span className={`text-sm font-mono ${
-                              reading.status === 'critical' ? 'text-red-400' :
-                              reading.status === 'warning' ? 'text-yellow-400' :
-                              'text-green-400'
-                            }`}>
-                              {reading.value}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Alert Info */}
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Type</span>
-                      <span className={ALERT_TYPES[selectedAlert.type].color}>
-                        {ALERT_TYPES[selectedAlert.type].label}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Commodity</span>
-                      <span style={{ color: COMMODITY_COLORS[selectedAlert.commodity] }}>
-                        {selectedAlert.commodity.charAt(0).toUpperCase() + selectedAlert.commodity.slice(1)}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Location</span>
-                      <span className="text-white text-right text-sm">{selectedAlert.location}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Detected</span>
-                      <span className="text-white">{new Date(selectedAlert.timestamp).toLocaleString()}</span>
-                    </div>
-                  </div>
-
-                  {/* Actions */}
-                  {selectedAlert.status === 'active' && (
-                    <div className="mt-6 space-y-2">
-                      <button
-                        onClick={() => handleResolve(selectedAlert.id, 'resolved')}
-                        className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-                      >
-                        <CheckCircleIcon className="w-5 h-5" />
-                        Mark Resolved
-                      </button>
-                      <button
-                        onClick={() => handleResolve(selectedAlert.id, 'false_alarm')}
-                        className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
-                      >
-                        <XCircleIcon className="w-5 h-5" />
-                        False Alarm
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="p-4 h-full flex flex-col items-center justify-center text-gray-500">
-                  <CubeIcon className="w-12 h-12 mb-2" />
-                  <p>Select an alert to view details</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </>
-      )}
-
-      {activeTab === 'statistics' && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Fatalities by Commodity */}
-          <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
-            <h3 className="text-lg font-semibold text-white mb-4">Fatalities by Commodity (YoY)</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={fatalityChartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                <XAxis dataKey="name" stroke="#9CA3AF" />
-                <YAxis stroke="#9CA3AF" />
-                <Tooltip
-                  contentStyle={{ backgroundColor: '#1F2937', border: '1px solid #374151' }}
-                  labelStyle={{ color: '#F9FAFB' }}
-                />
-                <Legend />
-                <Bar dataKey="2021" fill="#EF4444" name="2021" />
-                <Bar dataKey="2022" fill="#22C55E" name="2022" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* Fatalities by Cause */}
-          <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
-            <h3 className="text-lg font-semibold text-white mb-4">Incidents by Cause (2022)</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={causesChartData} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                <XAxis type="number" stroke="#9CA3AF" />
-                <YAxis dataKey="name" type="category" stroke="#9CA3AF" width={100} />
-                <Tooltip
-                  contentStyle={{ backgroundColor: '#1F2937', border: '1px solid #374151' }}
-                  labelStyle={{ color: '#F9FAFB' }}
-                />
-                <Legend />
-                <Bar dataKey="Fatalities" fill="#EF4444" />
-                <Bar dataKey="Injuries" fill="#F59E0B" name="Injuries (÷10)" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* Commodity Distribution */}
-          <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
-            <h3 className="text-lg font-semibold text-white mb-4">Fatalities Distribution by Commodity</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={pieData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={100}
-                  paddingAngle={5}
-                  dataKey="value"
-                  label={({ name, value }) => `${name}: ${value}`}
-                >
-                  {pieData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  contentStyle={{ backgroundColor: '#1F2937', border: '1px solid #374151' }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* Improvement Stats */}
-          <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
-            <h3 className="text-lg font-semibold text-white mb-4">Year-over-Year Improvement</h3>
-            <div className="space-y-4">
-              {COMMODITY_STATS.map((commodity) => (
-                <div key={commodity.name} className="flex items-center justify-between p-3 bg-gray-900 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: commodity.color }} />
-                    <span className="text-white font-medium">{commodity.name}</span>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <div className="text-right">
-                      <p className="text-sm text-gray-500">Fatalities</p>
-                      <p className="text-white">{commodity.fatalities2021} → {commodity.fatalities2022}</p>
-                    </div>
-                    <div className="flex items-center gap-1 text-green-400">
-                      <ArrowTrendingDownIcon className="w-5 h-5" />
-                      <span className="font-bold">{commodity.improvement}%</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {activeTab === 'health' && (
+      {/* Overview Tab */}
+      {activeTab === 'overview' && (
         <div className="space-y-6">
-          {/* Occupational Health Overview */}
-          <div className="grid grid-cols-3 gap-4">
-            {OCCUPATIONAL_HEALTH.map((health) => {
-              const Icon = health.icon;
-              const isIncrease = health.change > 0;
-              return (
-                <motion.div
-                  key={health.disease}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="bg-gray-800 rounded-xl border border-gray-700 p-6"
-                >
-                  <div className="flex items-center justify-between mb-4">
+          <div className="grid grid-cols-5 gap-4">
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-gray-800 rounded-xl p-4 border border-gray-700">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-green-500/20 rounded-lg"><ArrowTrendingDownIcon className="w-6 h-6 text-green-400" /></div>
+                <div><p className="text-2xl font-bold text-green-400">34%</p><p className="text-xs text-gray-500">Fatality Reduction YoY</p></div>
+              </div>
+            </motion.div>
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-gray-800 rounded-xl p-4 border border-red-500/50">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-red-500/20 rounded-lg"><ExclamationTriangleIcon className="w-6 h-6 text-red-400" /></div>
+                <div><p className="text-2xl font-bold text-red-400">{DEMO_DUST_READINGS.filter(d => d.exceedance).length}</p><p className="text-xs text-gray-500">Dust Exceedances</p></div>
+              </div>
+            </motion.div>
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-gray-800 rounded-xl p-4 border border-amber-500/50">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-amber-500/20 rounded-lg"><DocumentTextIcon className="w-6 h-6 text-amber-400" /></div>
+                <div><p className="text-2xl font-bold text-amber-400">{DEMO_INCIDENTS.filter(i => i.status === 'pending').length}</p><p className="text-xs text-gray-500">Pending Reports</p></div>
+              </div>
+            </motion.div>
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="bg-gray-800 rounded-xl p-4 border border-gray-700">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-500/20 rounded-lg"><AcademicCapIcon className="w-6 h-6 text-blue-400" /></div>
+                <div><p className="text-2xl font-bold text-blue-400">{TRAINING_COMPLIANCE.safetyInductions.percentage}%</p><p className="text-xs text-gray-500">Training Compliance</p></div>
+              </div>
+            </motion.div>
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="bg-gray-800 rounded-xl p-4 border border-gray-700">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-purple-500/20 rounded-lg"><ShieldExclamationIcon className="w-6 h-6 text-purple-400" /></div>
+                <div><p className="text-2xl font-bold text-purple-400">{EQUIPMENT_COMPLIANCE.machineGuardingCompliance}%</p><p className="text-xs text-gray-500">PPE Compliance</p></div>
+              </div>
+            </motion.div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-6">
+            <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
+              <h3 className="text-lg font-semibold text-white mb-4">Incident Trend (Last 6 Months)</h3>
+              <ResponsiveContainer width="100%" height={250}>
+                <AreaChart data={[
+                  { month: 'Sep', incidents: 12, nearMiss: 28 },
+                  { month: 'Oct', incidents: 8, nearMiss: 32 },
+                  { month: 'Nov', incidents: 15, nearMiss: 25 },
+                  { month: 'Dec', incidents: 6, nearMiss: 38 },
+                  { month: 'Jan', incidents: 9, nearMiss: 30 },
+                  { month: 'Feb', incidents: 5, nearMiss: 35 },
+                ]}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                  <XAxis dataKey="month" stroke="#9CA3AF" />
+                  <YAxis stroke="#9CA3AF" />
+                  <Tooltip contentStyle={{ backgroundColor: '#1F2937', border: '1px solid #374151' }} />
+                  <Legend />
+                  <Area type="monotone" dataKey="incidents" stackId="1" stroke="#EF4444" fill="#EF4444" fillOpacity={0.3} name="Incidents" />
+                  <Area type="monotone" dataKey="nearMiss" stackId="2" stroke="#F59E0B" fill="#F59E0B" fillOpacity={0.3} name="Near Misses" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
+              <h3 className="text-lg font-semibold text-white mb-4">Dust Exposure by Type</h3>
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={[
+                  { type: 'RCS', readings: 45, exceedances: 8 },
+                  { type: 'Coal Dust', readings: 38, exceedances: 3 },
+                  { type: 'DPM', readings: 28, exceedances: 2 },
+                ]}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                  <XAxis dataKey="type" stroke="#9CA3AF" />
+                  <YAxis stroke="#9CA3AF" />
+                  <Tooltip contentStyle={{ backgroundColor: '#1F2937', border: '1px solid #374151' }} />
+                  <Legend />
+                  <Bar dataKey="readings" fill="#3B82F6" name="Total Readings" />
+                  <Bar dataKey="exceedances" fill="#EF4444" name="Exceedances" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-6">
+            <div className="col-span-2 bg-gray-800 rounded-xl border border-gray-700 p-6">
+              <h3 className="text-lg font-semibold text-white mb-4">Recent Incidents</h3>
+              <div className="space-y-3">
+                {DEMO_INCIDENTS.map((incident) => (
+                  <div key={incident.id} className="flex items-center justify-between p-3 bg-gray-900 rounded-lg">
                     <div className="flex items-center gap-3">
-                      <div className={`p-2 rounded-lg bg-gray-700`}>
-                        <Icon className={`w-6 h-6 ${health.color}`} />
+                      <span className={`w-3 h-3 rounded-full ${getIncidentTypeColor(incident.incidentType)}`} />
+                      <div>
+                        <p className="text-white text-sm">{incident.mineName} - {incident.shaftSection}</p>
+                        <p className="text-xs text-gray-500">{getIncidentTypeLabel(incident.incidentType)}</p>
                       </div>
-                      <h3 className="text-lg font-semibold text-white">{health.disease}</h3>
                     </div>
-                    <div className={`flex items-center gap-1 ${isIncrease ? 'text-red-400' : 'text-green-400'}`}>
-                      {isIncrease ? (
-                        <ArrowTrendingUpIcon className="w-5 h-5" />
-                      ) : (
-                        <ArrowTrendingDownIcon className="w-5 h-5" />
-                      )}
-                      <span className="font-bold">{Math.abs(health.change)}%</span>
+                    <span className={`px-2 py-1 rounded text-xs ${
+                      incident.status === 'acknowledged' ? 'bg-green-500/20 text-green-400' :
+                      incident.status === 'submitted' ? 'bg-blue-500/20 text-blue-400' : 'bg-yellow-500/20 text-yellow-400'
+                    }`}>{incident.status}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
+              <h3 className="text-lg font-semibold text-white mb-4">Compliance Status</h3>
+              <div className="space-y-4">
+                {[
+                  { label: 'Incident Reports', value: 94, color: 'bg-green-500' },
+                  { label: 'Dust Monitoring', value: 88, color: 'bg-blue-500' },
+                  { label: 'Health Surveillance', value: 92, color: 'bg-purple-500' },
+                  { label: 'Training Records', value: 96, color: 'bg-amber-500' },
+                ].map((item) => (
+                  <div key={item.label}>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span className="text-gray-400">{item.label}</span>
+                      <span className="text-white">{item.value}%</span>
+                    </div>
+                    <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+                      <div className={`h-full ${item.color} rounded-full`} style={{ width: `${item.value}%` }} />
                     </div>
                   </div>
-                  <div className="flex justify-between items-end">
-                    <div>
-                      <p className="text-3xl font-bold text-white">{health.cases2021}</p>
-                      <p className="text-sm text-gray-500">Cases (2021)</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-lg text-gray-400">{health.cases2020}</p>
-                      <p className="text-xs text-gray-500">Previous (2020)</p>
-                    </div>
-                  </div>
-                </motion.div>
-              );
-            })}
-          </div>
-
-          {/* Health Trends Chart */}
-          <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
-            <h3 className="text-lg font-semibold text-white mb-4">Occupational Disease Trends</h3>
-            <ResponsiveContainer width="100%" height={350}>
-              <LineChart
-                data={[
-                  { year: '2019', Silicosis: 290, PTB: 900, NIHL: 700 },
-                  { year: '2020', Silicosis: 271, PTB: 849, NIHL: 738 },
-                  { year: '2021', Silicosis: 240, PTB: 793, NIHL: 776 },
-                ]}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                <XAxis dataKey="year" stroke="#9CA3AF" />
-                <YAxis stroke="#9CA3AF" />
-                <Tooltip
-                  contentStyle={{ backgroundColor: '#1F2937', border: '1px solid #374151' }}
-                  labelStyle={{ color: '#F9FAFB' }}
-                />
-                <Legend />
-                <Line type="monotone" dataKey="Silicosis" stroke="#A855F7" strokeWidth={2} dot={{ fill: '#A855F7' }} />
-                <Line type="monotone" dataKey="PTB" stroke="#EF4444" strokeWidth={2} dot={{ fill: '#EF4444' }} />
-                <Line type="monotone" dataKey="NIHL" stroke="#3B82F6" strokeWidth={2} dot={{ fill: '#3B82F6' }} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* Prevention Measures */}
-          <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
-            <h3 className="text-lg font-semibold text-white mb-4">AI-Powered Prevention Measures</h3>
-            <div className="grid grid-cols-2 gap-4">
-              {[
-                { title: 'Dust Monitoring', desc: 'Real-time silica and particulate tracking', status: 'active', icon: CloudIcon },
-                { title: 'Noise Exposure Tracking', desc: 'Personal dosimetry and zone monitoring', status: 'active', icon: SpeakerWaveIcon },
-                { title: 'Ventilation Analysis', desc: 'Airflow optimization recommendations', status: 'active', icon: CloudIcon },
-                { title: 'PPE Compliance', desc: 'Respirator and hearing protection detection', status: 'active', icon: ShieldExclamationIcon },
-              ].map((measure) => (
-                <div key={measure.title} className="flex items-start gap-3 p-4 bg-gray-900 rounded-lg">
-                  <div className="p-2 bg-primary-600/20 rounded-lg">
-                    <measure.icon className="w-5 h-5 text-primary-400" />
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-white">{measure.title}</h4>
-                    <p className="text-sm text-gray-500">{measure.desc}</p>
-                    <span className="inline-flex items-center gap-1 mt-2 text-xs text-green-400">
-                      <span className="w-1.5 h-1.5 bg-green-400 rounded-full" />
-                      {measure.status}
-                    </span>
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {activeTab === 'compliance' && (
+      {/* Incidents Tab */}
+      {activeTab === 'incidents' && (
         <div className="space-y-6">
-          {/* Compliance Overview */}
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold text-white">Incident & Accident Data (DMRE Submission)</h2>
+            <button className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700">
+              <DocumentTextIcon className="w-5 h-5" />
+              New Incident Report
+            </button>
+          </div>
+          <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-900">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">ID</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">Mine / Section</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">Type</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">Date/Time</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">Root Cause</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">PPE</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-700">
+                  {DEMO_INCIDENTS.map((incident) => (
+                    <tr key={incident.id} className="hover:bg-gray-700/50">
+                      <td className="px-4 py-3 text-sm text-white font-mono">{incident.id}</td>
+                      <td className="px-4 py-3"><div className="text-sm text-white">{incident.mineName}</div><div className="text-xs text-gray-500">{incident.shaftSection}</div></td>
+                      <td className="px-4 py-3"><span className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs ${getIncidentTypeColor(incident.incidentType)} text-white`}>{getIncidentTypeLabel(incident.incidentType)}</span></td>
+                      <td className="px-4 py-3 text-sm text-gray-400">{new Date(incident.dateTime).toLocaleString()}</td>
+                      <td className="px-4 py-3 text-sm text-gray-400 capitalize">{incident.rootCause}</td>
+                      <td className="px-4 py-3">{incident.ppeWorn ? <CheckCircleIcon className="w-5 h-5 text-green-400" /> : <XCircleIcon className="w-5 h-5 text-red-400" />}</td>
+                      <td className="px-4 py-3"><span className={`px-2 py-1 rounded text-xs ${incident.status === 'acknowledged' ? 'bg-green-500/20 text-green-400' : incident.status === 'submitted' ? 'bg-blue-500/20 text-blue-400' : 'bg-yellow-500/20 text-yellow-400'}`}>{incident.status}</span></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <DocumentTextIcon className="w-6 h-6 text-blue-400 flex-shrink-0" />
+              <div><h4 className="text-blue-400 font-medium">Auto-Generated Reports</h4><p className="text-sm text-gray-400 mt-1">System auto-generates Section 23 notices, statutory incident reports, and DMRE submission forms.</p></div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Dust Tab */}
+      {activeTab === 'dust' && (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold text-white">Occupational Hygiene & Dust Monitoring</h2>
+            <button className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"><BeakerIcon className="w-5 h-5" />New Sample</button>
+          </div>
           <div className="grid grid-cols-4 gap-4">
-            {[
-              { label: 'Inspections Completed', value: '47', total: '52', color: 'text-green-400' },
-              { label: 'Directives Compliance', value: '94%', total: '', color: 'text-blue-400' },
-              { label: 'Medical Reports Filed', value: '931', total: '', color: 'text-purple-400' },
-              { label: 'Safety Campaigns', value: '12', total: '', color: 'text-amber-400' },
-            ].map((stat) => (
+            {[{ label: 'RCS Readings', value: 45, exceedances: 8, color: 'text-purple-400' },{ label: 'Coal Dust', value: 38, exceedances: 3, color: 'text-gray-400' },{ label: 'DPM Readings', value: 28, exceedances: 2, color: 'text-blue-400' },{ label: 'Total Exceedances', value: 13, exceedances: null, color: 'text-red-400' }].map((stat) => (
               <div key={stat.label} className="bg-gray-800 rounded-xl border border-gray-700 p-4">
-                <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
                 <p className="text-sm text-gray-500">{stat.label}</p>
+                <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
+                {stat.exceedances !== null && <p className="text-xs text-red-400">{stat.exceedances} exceedances</p>}
               </div>
             ))}
           </div>
+          <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
+            <div className="p-4 border-b border-gray-700"><h3 className="font-semibold text-white">Recent Dust Samples</h3></div>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-900">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">Location</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">Dust Type</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">Exposure (mg/m³)</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">Limit</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">Respirator</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-700">
+                  {DEMO_DUST_READINGS.map((reading) => (
+                    <tr key={reading.id} className={reading.exceedance ? 'bg-red-500/10' : ''}>
+                      <td className="px-4 py-3 text-sm text-white">{reading.location}</td>
+                      <td className="px-4 py-3 text-sm text-gray-400 uppercase">{reading.dustType}</td>
+                      <td className="px-4 py-3 text-sm font-mono"><span className={reading.exceedance ? 'text-red-400' : 'text-green-400'}>{reading.exposure}</span></td>
+                      <td className="px-4 py-3 text-sm text-gray-500 font-mono">{reading.limit}</td>
+                      <td className="px-4 py-3 text-sm text-gray-400">{reading.respiratorType}</td>
+                      <td className="px-4 py-3">{reading.exceedance ? <span className="px-2 py-1 bg-red-500/20 text-red-400 rounded text-xs">EXCEEDANCE</span> : <span className="px-2 py-1 bg-green-500/20 text-green-400 rounded text-xs">OK</span>}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <ExclamationCircleIcon className="w-6 h-6 text-amber-400 flex-shrink-0" />
+              <div><h4 className="text-amber-400 font-medium">Early Silicosis Risk Warning</h4><p className="text-sm text-gray-400 mt-1">Level 2 Stope Face has shown 3 consecutive RCS exceedances. Recommend immediate ventilation review.</p></div>
+            </div>
+          </div>
+        </div>
+      )}
 
-          {/* Chief Inspector Directives */}
+      {/* Health Tab */}
+      {activeTab === 'health' && (
+        <div className="space-y-6">
+          <h2 className="text-xl font-semibold text-white">Health Surveillance Data (Anonymised)</h2>
+          <div className="grid grid-cols-4 gap-4">
+            <div className="bg-gray-800 rounded-xl border border-gray-700 p-4"><p className="text-sm text-gray-500">Total Screened</p><p className="text-2xl font-bold text-white">{HEALTH_STATS.totalScreened.toLocaleString()}</p></div>
+            <div className="bg-gray-800 rounded-xl border border-gray-700 p-4"><p className="text-sm text-gray-500">TB Positive</p><p className="text-2xl font-bold text-red-400">{HEALTH_STATS.tbPositive}</p></div>
+            <div className="bg-gray-800 rounded-xl border border-gray-700 p-4"><p className="text-sm text-gray-500">NIHL Cases</p><p className="text-2xl font-bold text-blue-400">{HEALTH_STATS.nihlCases}</p></div>
+            <div className="bg-gray-800 rounded-xl border border-gray-700 p-4"><p className="text-sm text-gray-500">New Silicosis</p><p className="text-2xl font-bold text-purple-400">{HEALTH_STATS.silicosisNew}</p></div>
+          </div>
+          <div className="grid grid-cols-2 gap-6">
+            <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
+              <h3 className="text-lg font-semibold text-white mb-4">Lung Function Results</h3>
+              <ResponsiveContainer width="100%" height={250}>
+                <PieChart>
+                  <Pie data={[{ name: 'Normal', value: HEALTH_STATS.lungFunctionNormal, color: '#22C55E' },{ name: 'Abnormal', value: HEALTH_STATS.lungFunctionAbnormal, color: '#EF4444' }]} cx="50%" cy="50%" innerRadius={60} outerRadius={100} dataKey="value" label={({ name, value }) => `${name}: ${value}`}>
+                    <Cell fill="#22C55E" /><Cell fill="#EF4444" />
+                  </Pie>
+                  <Tooltip contentStyle={{ backgroundColor: '#1F2937', border: '1px solid #374151' }} />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
+              <h3 className="text-lg font-semibold text-white mb-4">Disease Trends</h3>
+              <ResponsiveContainer width="100%" height={250}>
+                <LineChart data={[{ year: '2022', silicosis: 18, tb: 32, nihl: 145 },{ year: '2023', silicosis: 15, tb: 28, nihl: 152 },{ year: '2024', silicosis: 12, tb: 23, nihl: 156 }]}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                  <XAxis dataKey="year" stroke="#9CA3AF" />
+                  <YAxis stroke="#9CA3AF" />
+                  <Tooltip contentStyle={{ backgroundColor: '#1F2937', border: '1px solid #374151' }} />
+                  <Legend />
+                  <Line type="monotone" dataKey="silicosis" stroke="#A855F7" strokeWidth={2} name="Silicosis" />
+                  <Line type="monotone" dataKey="tb" stroke="#EF4444" strokeWidth={2} name="TB" />
+                  <Line type="monotone" dataKey="nihl" stroke="#3B82F6" strokeWidth={2} name="NIHL" />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Training Tab */}
+      {activeTab === 'training' && (
+        <div className="space-y-6">
+          <h2 className="text-xl font-semibold text-white">Training & Competency Records</h2>
+          <div className="grid grid-cols-5 gap-4">
+            <div className="bg-gray-800 rounded-xl border border-gray-700 p-4"><p className="text-sm text-gray-500">Safety Inductions</p><p className="text-2xl font-bold text-green-400">{TRAINING_COMPLIANCE.safetyInductions.percentage}%</p></div>
+            <div className="bg-gray-800 rounded-xl border border-gray-700 p-4"><p className="text-sm text-gray-500">PPE Training</p><p className="text-2xl font-bold text-blue-400">{TRAINING_COMPLIANCE.ppeTraining.percentage}%</p></div>
+            <div className="bg-gray-800 rounded-xl border border-gray-700 p-4"><p className="text-sm text-gray-500">Valid Certificates</p><p className="text-2xl font-bold text-white">{TRAINING_COMPLIANCE.competencyCerts.valid}</p><p className="text-xs text-yellow-400">{TRAINING_COMPLIANCE.competencyCerts.expiring} expiring</p></div>
+            <div className="bg-gray-800 rounded-xl border border-gray-700 p-4"><p className="text-sm text-gray-500">Refresher Due</p><p className="text-2xl font-bold text-yellow-400">{TRAINING_COMPLIANCE.refresherTraining.due}</p></div>
+            <div className="bg-gray-800 rounded-xl border border-gray-700 p-4"><p className="text-sm text-gray-500">Toolbox Talks</p><p className="text-2xl font-bold text-purple-400">{TRAINING_COMPLIANCE.toolboxTalks.thisMonth}/{TRAINING_COMPLIANCE.toolboxTalks.target}</p></div>
+          </div>
           <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
-            <h3 className="text-lg font-semibold text-white mb-4">Chief Inspector Directives (2022)</h3>
-            <div className="space-y-3">
-              {[
-                { title: 'Covid-19 Prevention & Management', status: 'compliant', date: '2022-01-15' },
-                { title: 'Mine Fires & Explosions Emergency Response', status: 'compliant', date: '2022-03-20' },
-                { title: 'Conveyor Belt Fire Prevention', status: 'compliant', date: '2022-05-10' },
-                { title: 'Mine Residue Deposits (MRD) Management', status: 'partial', date: '2022-07-01' },
-                { title: 'Diesel Trackless Mobile Machines - Collision Avoidance', status: 'compliant', date: '2022-12-21' },
-              ].map((directive) => (
-                <div key={directive.title} className="flex items-center justify-between p-4 bg-gray-900 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-3 h-3 rounded-full ${
-                      directive.status === 'compliant' ? 'bg-green-400' : 'bg-yellow-400'
-                    }`} />
-                    <span className="text-white">{directive.title}</span>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <span className="text-sm text-gray-500">{directive.date}</span>
-                    <span className={`px-2 py-1 rounded text-xs ${
-                      directive.status === 'compliant'
-                        ? 'bg-green-500/20 text-green-400'
-                        : 'bg-yellow-500/20 text-yellow-400'
-                    }`}>
-                      {directive.status}
-                    </span>
-                  </div>
+            <h3 className="text-lg font-semibold text-white mb-4">Compliance Readiness Score</h3>
+            <div className="flex items-center gap-8">
+              <div className="text-center"><div className="text-5xl font-bold text-green-400">94</div><p className="text-gray-500">Audit Ready</p></div>
+              <div className="flex-1 space-y-3">
+                {[{ label: 'Mandatory Inductions', value: 97.6 },{ label: 'Competency Certificates', value: 93.0 },{ label: 'Refresher Training', value: 89.4 },{ label: 'Toolbox Talks', value: 95.4 }].map((item) => (
+                  <div key={item.label}><div className="flex justify-between text-sm mb-1"><span className="text-gray-400">{item.label}</span><span className="text-white">{item.value}%</span></div><div className="h-2 bg-gray-700 rounded-full overflow-hidden"><div className="h-full bg-green-500 rounded-full" style={{ width: `${item.value}%` }} /></div></div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Equipment Tab */}
+      {activeTab === 'equipment' && (
+        <div className="space-y-6">
+          <h2 className="text-xl font-semibold text-white">Equipment & PPE Compliance</h2>
+          <div className="grid grid-cols-3 gap-6">
+            <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
+              <h3 className="text-lg font-semibold text-white mb-4">PPE Inspection Summary</h3>
+              <div className="space-y-4">
+                <div className="flex justify-between"><span className="text-gray-400">Total Issued</span><span className="text-white font-bold">{EQUIPMENT_COMPLIANCE.ppeIssued}</span></div>
+                <div className="flex justify-between"><span className="text-gray-400">Passed Inspection</span><span className="text-green-400 font-bold">{EQUIPMENT_COMPLIANCE.ppeInspectionsPassed}</span></div>
+                <div className="flex justify-between"><span className="text-gray-400">Failed Inspection</span><span className="text-red-400 font-bold">{EQUIPMENT_COMPLIANCE.ppeInspectionsFailed}</span></div>
+              </div>
+            </div>
+            <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
+              <h3 className="text-lg font-semibold text-white mb-4">Equipment Status</h3>
+              <div className="space-y-4">
+                <div className="flex justify-between"><span className="text-gray-400">Breakdowns (MTD)</span><span className="text-yellow-400 font-bold">{EQUIPMENT_COMPLIANCE.equipmentBreakdowns}</span></div>
+                <div className="flex justify-between"><span className="text-gray-400">LOTO Violations</span><span className="text-red-400 font-bold">{EQUIPMENT_COMPLIANCE.lotoViolations}</span></div>
+                <div className="flex justify-between"><span className="text-gray-400">Machine Guarding</span><span className="text-green-400 font-bold">{EQUIPMENT_COMPLIANCE.machineGuardingCompliance}%</span></div>
+              </div>
+            </div>
+            <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
+              <h3 className="text-lg font-semibold text-white mb-4">AI Vision Detection</h3>
+              <div className="space-y-4">
+                <div className="flex justify-between"><span className="text-gray-400">PPE Detection Accuracy</span><span className="text-green-400 font-bold">94.7%</span></div>
+                <div className="flex justify-between"><span className="text-gray-400">Violations Today</span><span className="text-yellow-400 font-bold">23</span></div>
+                <div className="flex justify-between"><span className="text-gray-400">Auto-Alerts Sent</span><span className="text-blue-400 font-bold">18</span></div>
+              </div>
+            </div>
+          </div>
+          <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
+            <h3 className="text-lg font-semibold text-white mb-4">Non-Compliance Heatmap by Zone</h3>
+            <div className="grid grid-cols-6 gap-2">
+              {['Level 1', 'Level 2', 'Level 3', 'Surface', 'Processing', 'Equipment Bay'].map((zone, i) => (
+                <div key={zone} className={`p-4 rounded-lg text-center ${i === 1 ? 'bg-red-500/30' : i === 3 ? 'bg-green-500/30' : 'bg-yellow-500/30'}`}>
+                  <p className="text-sm font-medium text-white">{zone}</p>
+                  <p className="text-lg font-bold">{[12, 28, 15, 5, 18, 10][i]}</p>
+                  <p className="text-xs text-gray-400">violations</p>
                 </div>
               ))}
             </div>
           </div>
+        </div>
+      )}
 
-          {/* Upcoming Inspections */}
+      {/* Environmental Tab */}
+      {activeTab === 'environmental' && (
+        <div className="space-y-6">
+          <h2 className="text-xl font-semibold text-white">Environmental & Operational Data</h2>
           <div className="grid grid-cols-2 gap-6">
             <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
-              <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                <CalendarDaysIcon className="w-5 h-5 text-blue-400" />
-                Scheduled Inspections
-              </h3>
+              <h3 className="text-lg font-semibold text-white mb-4">Ventilation Status</h3>
               <div className="space-y-3">
-                {[
-                  { mine: 'Gold Mine A - Level 3', date: 'Feb 12, 2026', type: 'Safety Audit' },
-                  { mine: 'Platinum Mine B', date: 'Feb 15, 2026', type: 'Health Inspection' },
-                  { mine: 'Coal Mine C - Conveyor', date: 'Feb 18, 2026', type: 'Equipment Check' },
-                  { mine: 'Chrome Mine D', date: 'Feb 22, 2026', type: 'Full Audit' },
-                ].map((inspection, idx) => (
-                  <div key={idx} className="flex items-center justify-between p-3 bg-gray-900 rounded-lg">
-                    <div>
-                      <p className="text-white text-sm">{inspection.mine}</p>
-                      <p className="text-xs text-gray-500">{inspection.type}</p>
+                {ENVIRONMENTAL_DATA.ventilation.map((v) => (
+                  <div key={v.location} className="flex items-center justify-between p-3 bg-gray-900 rounded-lg">
+                    <div><p className="text-white">{v.location}</p><p className="text-xs text-gray-500">Required: {v.required} m³/s</p></div>
+                    <div className="text-right">
+                      <p className={`text-lg font-bold ${v.status === 'ok' ? 'text-green-400' : 'text-yellow-400'}`}>{v.airflow} m³/s</p>
+                      <span className={`text-xs px-2 py-0.5 rounded ${v.status === 'ok' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>{v.status.toUpperCase()}</span>
                     </div>
-                    <span className="text-sm text-blue-400">{inspection.date}</span>
                   </div>
                 ))}
               </div>
             </div>
-
             <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
-              <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                <UserGroupIcon className="w-5 h-5 text-green-400" />
-                Stakeholder Engagement
-              </h3>
+              <h3 className="text-lg font-semibold text-white mb-4">Gas Levels</h3>
               <div className="space-y-3">
-                {[
-                  { event: 'Regional Tripartite Forum', status: 'Scheduled', date: 'Feb 20, 2026' },
-                  { event: 'OHS Awareness Campaign', status: 'In Progress', date: 'Ongoing' },
-                  { event: 'CEO Safety Meeting', status: 'Completed', date: 'Feb 5, 2026' },
-                  { event: 'Union Leadership Briefing', status: 'Scheduled', date: 'Feb 25, 2026' },
-                ].map((event, idx) => (
-                  <div key={idx} className="flex items-center justify-between p-3 bg-gray-900 rounded-lg">
-                    <div>
-                      <p className="text-white text-sm">{event.event}</p>
-                      <p className="text-xs text-gray-500">{event.date}</p>
+                {ENVIRONMENTAL_DATA.gasLevels.map((g) => (
+                  <div key={g.gas} className="flex items-center justify-between p-3 bg-gray-900 rounded-lg">
+                    <div><p className="text-white">{g.gas}</p><p className="text-xs text-gray-500">Limit: {g.limit} {g.unit}</p></div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-24 h-2 bg-gray-700 rounded-full overflow-hidden">
+                        <div className={`h-full rounded-full ${(g.level / g.limit) > 0.8 ? 'bg-red-500' : (g.level / g.limit) > 0.5 ? 'bg-yellow-500' : 'bg-green-500'}`} style={{ width: `${Math.min((g.level / g.limit) * 100, 100)}%` }} />
+                      </div>
+                      <span className="text-white font-mono w-16 text-right">{g.level} {g.unit}</span>
                     </div>
-                    <span className={`px-2 py-1 rounded text-xs ${
-                      event.status === 'Completed' ? 'bg-green-500/20 text-green-400' :
-                      event.status === 'In Progress' ? 'bg-blue-500/20 text-blue-400' :
-                      'bg-gray-500/20 text-gray-400'
-                    }`}>
-                      {event.status}
-                    </span>
                   </div>
                 ))}
               </div>
             </div>
           </div>
+          <div className="grid grid-cols-3 gap-4">
+            <div className="bg-gray-800 rounded-xl border border-gray-700 p-4"><p className="text-sm text-gray-500">Temperature</p><p className="text-2xl font-bold text-white">{ENVIRONMENTAL_DATA.temperature}°C</p></div>
+            <div className="bg-gray-800 rounded-xl border border-gray-700 p-4"><p className="text-sm text-gray-500">Humidity</p><p className="text-2xl font-bold text-white">{ENVIRONMENTAL_DATA.humidity}%</p></div>
+            <div className="bg-gray-800 rounded-xl border border-gray-700 p-4"><p className="text-sm text-gray-500">Next Blast</p><p className="text-2xl font-bold text-yellow-400">14:30</p></div>
+          </div>
+        </div>
+      )}
+
+      {/* Predictive AI Tab */}
+      {activeTab === 'predictive' && (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold text-white">Predictive Intelligence</h2>
+            <span className="text-sm text-gray-500">Powered by AI/ML Models</span>
+          </div>
+          <div className="space-y-3">
+            {PREDICTIVE_DATA.aiInsights.map((insight, i) => (
+              <motion.div key={i} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.1 }}
+                className={`p-4 rounded-lg border ${insight.type === 'warning' ? 'bg-yellow-500/10 border-yellow-500/30' : insight.type === 'alert' ? 'bg-red-500/10 border-red-500/30' : insight.type === 'success' ? 'bg-green-500/10 border-green-500/30' : 'bg-blue-500/10 border-blue-500/30'}`}>
+                <div className="flex items-start gap-3">
+                  <LightBulbIcon className={`w-6 h-6 flex-shrink-0 ${insight.type === 'warning' ? 'text-yellow-400' : insight.type === 'alert' ? 'text-red-400' : insight.type === 'success' ? 'text-green-400' : 'text-blue-400'}`} />
+                  <div className="flex-1"><p className="text-white">{insight.message}</p><p className="text-xs text-gray-500 mt-1">Confidence: {insight.confidence}%</p></div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+          <div className="grid grid-cols-3 gap-6">
+            <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
+              <h3 className="text-lg font-semibold text-white mb-4">🔮 Dust Risk Index</h3>
+              <div className="space-y-3">
+                {PREDICTIVE_DATA.dustRiskIndex.map((item) => (
+                  <div key={item.shaft} className="flex items-center justify-between">
+                    <span className="text-gray-400">{item.shaft}</span>
+                    <div className="flex items-center gap-2">
+                      <div className="w-20 h-2 bg-gray-700 rounded-full overflow-hidden">
+                        <div className={`h-full rounded-full ${item.risk > 70 ? 'bg-red-500' : item.risk > 40 ? 'bg-yellow-500' : 'bg-green-500'}`} style={{ width: `${item.risk}%` }} />
+                      </div>
+                      <span className={`text-sm font-bold ${item.risk > 70 ? 'text-red-400' : item.risk > 40 ? 'text-yellow-400' : 'text-green-400'}`}>{item.risk}%</span>
+                      {item.trend === 'increasing' && <ArrowTrendingUpIcon className="w-4 h-4 text-red-400" />}
+                      {item.trend === 'decreasing' && <ArrowTrendingDownIcon className="w-4 h-4 text-green-400" />}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
+              <h3 className="text-lg font-semibold text-white mb-4">📊 PPE Non-Compliance Risk</h3>
+              <div className="space-y-3">
+                {PREDICTIVE_DATA.ppeNonCompliance.map((item) => (
+                  <div key={item.zone} className="flex items-center justify-between">
+                    <span className="text-gray-400">{item.zone}</span>
+                    <span className={`text-sm font-bold ${item.probability > 40 ? 'text-red-400' : item.probability > 25 ? 'text-yellow-400' : 'text-green-400'}`}>{item.probability}%</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
+              <h3 className="text-lg font-semibold text-white mb-4">⚠️ Injury Forecast</h3>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center p-3 bg-gray-900 rounded-lg"><span className="text-gray-400">Next 30 days</span><span className="text-yellow-400 font-bold">{PREDICTIVE_DATA.injuryLikelihood.next30}%</span></div>
+                <div className="flex justify-between items-center p-3 bg-gray-900 rounded-lg"><span className="text-gray-400">Next 60 days</span><span className="text-orange-400 font-bold">{PREDICTIVE_DATA.injuryLikelihood.next60}%</span></div>
+                <div className="flex justify-between items-center p-3 bg-gray-900 rounded-lg"><span className="text-gray-400">Next 90 days</span><span className="text-red-400 font-bold">{PREDICTIVE_DATA.injuryLikelihood.next90}%</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Submit Tab */}
+      {activeTab === 'submit' && (
+        <div className="space-y-6">
+          <h2 className="text-xl font-semibold text-white">Submit to Mining Board (DMRE)</h2>
+          <div className="grid grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium text-white">Available Reports</h3>
+              {[{ name: 'Monthly Incident Report', status: 'ready' },{ name: 'Dust Exceedance Log', status: 'ready' },{ name: 'Quarterly Health Summary', status: 'pending' },{ name: 'Training Compliance Report', status: 'ready' },{ name: 'Section 23 Notice (INC-003)', status: 'draft' }].map((report, i) => (
+                <div key={i} className="flex items-center justify-between p-4 bg-gray-800 rounded-lg border border-gray-700">
+                  <div className="flex items-center gap-3"><DocumentChartBarIcon className="w-6 h-6 text-gray-400" /><p className="text-white">{report.name}</p></div>
+                  <div className="flex items-center gap-2">
+                    <span className={`px-2 py-1 rounded text-xs ${report.status === 'ready' ? 'bg-green-500/20 text-green-400' : report.status === 'pending' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-gray-500/20 text-gray-400'}`}>{report.status}</span>
+                    <button className="text-primary-400 hover:text-primary-300 text-sm">Download</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
+              <h3 className="text-lg font-medium text-white mb-4">Submission Process</h3>
+              <div className="space-y-4">
+                {[{ step: 1, label: 'Validate', desc: 'Check mandatory fields & regulatory bounds' },{ step: 2, label: 'Normalize', desc: 'Convert to DMRE CSV/Excel/PDF format' },{ step: 3, label: 'Generate', desc: 'Auto-create statutory reports' },{ step: 4, label: 'Submit', desc: 'Download or email to regulator' }].map((item) => (
+                  <div key={item.step} className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-full bg-primary-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">{item.step}</div>
+                    <div><p className="text-white font-medium">{item.label}</p><p className="text-sm text-gray-500">{item.desc}</p></div>
+                  </div>
+                ))}
+              </div>
+              <button onClick={handleSubmitToBoard} className="w-full mt-6 flex items-center justify-center gap-2 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                <PaperAirplaneIcon className="w-5 h-5" />Begin Submission
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Submission Modal */}
+      {showSubmitModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
+          <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-gray-800 rounded-xl border border-gray-700 p-8 max-w-md w-full mx-4">
+            <h3 className="text-xl font-semibold text-white mb-6 text-center">Submitting to Mining Board</h3>
+            <div className="space-y-4">
+              {[{ step: 1, label: 'Validating data...' },{ step: 2, label: 'Normalizing to DMRE schema...' },{ step: 3, label: 'Generating reports...' },{ step: 4, label: 'Ready for submission' }].map((item) => (
+                <div key={item.step} className="flex items-center gap-3">
+                  {submissionStep >= item.step ? <CheckCircleIcon className="w-6 h-6 text-green-400" /> : <div className="w-6 h-6 border-2 border-gray-600 rounded-full flex items-center justify-center">{submissionStep === item.step - 1 && <ArrowPathIcon className="w-4 h-4 text-primary-400 animate-spin" />}</div>}
+                  <span className={submissionStep >= item.step ? 'text-white' : 'text-gray-500'}>{item.label}</span>
+                </div>
+              ))}
+            </div>
+            {submissionStep === 4 && (
+              <div className="mt-6 space-y-3">
+                <button className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"><DocumentChartBarIcon className="w-5 h-5" />Download Reports (ZIP)</button>
+                <button className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600"><PaperAirplaneIcon className="w-5 h-5" />Email to DMRE</button>
+                <button onClick={() => setShowSubmitModal(false)} className="w-full text-gray-400 hover:text-white text-sm">Close</button>
+              </div>
+            )}
+          </motion.div>
         </div>
       )}
     </div>
