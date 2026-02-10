@@ -78,7 +78,7 @@ const categories: NavCategory[] = [
     ],
   },
   {
-    name: 'Health',
+    name: 'Healthcare',
     icon: HeartIcon,
     color: 'text-red-400',
     items: [
@@ -93,7 +93,7 @@ const categories: NavCategory[] = [
     color: 'text-orange-400',
     items: [
       { name: 'Safety Monitor', href: '/construction/safety', icon: ShieldExclamationIcon },
-      { name: 'Incidents', href: '/incidents', icon: ExclamationTriangleIcon },
+      { name: 'Incidents', href: '/construction/incidents', icon: ExclamationTriangleIcon },
       { name: 'Sites', href: '/sites', icon: BuildingOfficeIcon },
       { name: 'Analytics', href: '/construction/analytics', icon: ChartBarIcon },
     ],
@@ -106,6 +106,16 @@ const categories: NavCategory[] = [
       { name: 'Security Monitor', href: '/airport-security', icon: ShieldExclamationIcon },
       { name: 'Incidents', href: '/airport/incidents', icon: ExclamationTriangleIcon },
       { name: 'Analytics', href: '/airport/analytics', icon: ChartBarIcon },
+    ],
+  },
+  {
+    name: 'Agriculture',
+    icon: CubeIcon,
+    color: 'text-green-400',
+    items: [
+      { name: 'Safety Monitor', href: '/agriculture/safety', icon: ShieldExclamationIcon },
+      { name: 'Incidents', href: '/agriculture/incidents', icon: ExclamationTriangleIcon },
+      { name: 'Analytics', href: '/agriculture/analytics', icon: ChartBarIcon },
     ],
   },
 ]

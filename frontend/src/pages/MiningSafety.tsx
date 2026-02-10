@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
   ShieldExclamationIcon,
@@ -24,6 +24,14 @@ import {
   PrinterIcon,
   ShieldCheckIcon,
   SignalIcon,
+  TruckIcon,
+  EyeIcon,
+  XMarkIcon,
+  PlayIcon,
+  MapPinIcon,
+  VideoCameraIcon,
+  PhotoIcon,
+  DocumentMagnifyingGlassIcon,
 } from '@heroicons/react/24/outline';
 import { BellAlertIcon as BellAlertSolid } from '@heroicons/react/24/solid';
 import {
@@ -82,6 +90,8 @@ const TABS = [
   { id: 'inspector', label: 'Inspector Mode', icon: ShieldCheckIcon },
   { id: 'incidents', label: 'Incidents', icon: ExclamationTriangleIcon },
   { id: 'analytics', label: 'Analytics', icon: DocumentChartBarIcon },
+  { id: 'monitoring', label: 'AI Monitoring', icon: EyeIcon },
+  { id: 'forensics', label: 'Forensics', icon: DocumentMagnifyingGlassIcon },
   { id: 'dust', label: 'Dust & Hygiene', icon: CloudIcon },
   { id: 'health', label: 'Health', icon: HeartIcon },
   { id: 'training', label: 'Training', icon: AcademicCapIcon },
@@ -89,7 +99,33 @@ const TABS = [
   { id: 'environmental', label: 'Environmental', icon: BeakerIcon },
   { id: 'predictive', label: 'Predictive AI', icon: LightBulbIcon },
   { id: 'dailylog', label: 'Daily Log', icon: ClipboardDocumentCheckIcon },
-  { id: 'submit', label: 'Submit to Board', icon: PaperAirplaneIcon },
+];
+
+// AI Monitoring Alerts - Heavy Machinery, Conveyor, Dust/Smoke, Zone Access, Fatigue
+const AI_MONITORING_ALERTS = [
+  // Heavy Machinery Proximity
+  { id: 'MON-001', type: 'proximity', severity: 'critical', title: 'Heavy Machinery Proximity Alert', message: 'Worker detected within 3m of active LHD', zone: 'Level 2 Tramway', camera: 'CAM-12', time: '2 min ago', acknowledged: false, mediaType: 'video', mediaUrl: '/footage/proximity_001.mp4', thumbnail: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400' },
+  { id: 'MON-002', type: 'proximity', severity: 'warning', title: 'Dozer Blind Spot Entry', message: 'Personnel entered dozer reverse zone without spotter', zone: 'Surface Stockpile', camera: 'CAM-08', time: '8 min ago', acknowledged: true, mediaType: 'video', mediaUrl: '/footage/proximity_002.mp4', thumbnail: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=400' },
+  // Conveyor Belt Hazard
+  { id: 'MON-003', type: 'conveyor', severity: 'critical', title: 'Conveyor Belt Hazard', message: 'Unauthorized person near moving conveyor belt', zone: 'Belt Road 2', camera: 'CAM-15', time: '5 min ago', acknowledged: false, mediaType: 'video', mediaUrl: '/footage/conveyor_001.mp4', thumbnail: 'https://images.unsplash.com/photo-1565793298595-6a879b1d9492?w=400' },
+  { id: 'MON-004', type: 'conveyor', severity: 'warning', title: 'Belt Misalignment Detected', message: 'AI detected belt tracking issue - potential friction fire risk', zone: 'Main Conveyor', camera: 'CAM-16', time: '12 min ago', acknowledged: false, mediaType: 'image', mediaUrl: '/footage/conveyor_002.jpg', thumbnail: 'https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?w=400' },
+  // Dust and Smoke Detection
+  { id: 'MON-005', type: 'dust_smoke', severity: 'critical', title: 'Smoke Detected', message: 'Possible fire - smoke plume detected near electrical panel', zone: 'Workshop', camera: 'CAM-22', time: '1 min ago', acknowledged: false, mediaType: 'video', mediaUrl: '/footage/smoke_001.mp4', thumbnail: 'https://images.unsplash.com/photo-1486754735734-325b5831c3ad?w=400' },
+  { id: 'MON-006', type: 'dust_smoke', severity: 'warning', title: 'Excessive Dust Cloud', message: 'Dust levels exceeding visual threshold at crusher', zone: 'Crusher Area', camera: 'CAM-18', time: '15 min ago', acknowledged: true, mediaType: 'image', mediaUrl: '/footage/dust_001.jpg', thumbnail: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400' },
+  // Unauthorized Zone Access
+  { id: 'MON-007', type: 'zone_access', severity: 'critical', title: 'Unauthorized Zone Entry', message: 'Unidentified person entered blasting exclusion zone', zone: 'Level 4 Stope', camera: 'CAM-31', time: '3 min ago', acknowledged: false, mediaType: 'video', mediaUrl: '/footage/zone_001.mp4', thumbnail: 'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400' },
+  { id: 'MON-008', type: 'zone_access', severity: 'warning', title: 'After-Hours Access', message: 'Movement detected in restricted area during non-operational hours', zone: 'Magazine', camera: 'CAM-35', time: '22 min ago', acknowledged: true, mediaType: 'video', mediaUrl: '/footage/zone_002.mp4', thumbnail: 'https://images.unsplash.com/photo-1558618047-f4b511d398e6?w=400' },
+  // Fatigue & Distraction
+  { id: 'MON-009', type: 'fatigue', severity: 'critical', title: 'Operator Fatigue Detected', message: 'LHD operator showing signs of drowsiness - 3 micro-sleeps in 10 min', zone: 'Level 1 Tramway', camera: 'CAM-CAB-04', time: '1 min ago', acknowledged: false, mediaType: 'video', mediaUrl: '/footage/fatigue_001.mp4', thumbnail: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=400' },
+  { id: 'MON-010', type: 'fatigue', severity: 'warning', title: 'Distracted Operator', message: 'Drill operator looking away from task for extended period', zone: 'Level 3 Stope', camera: 'CAM-CAB-07', time: '6 min ago', acknowledged: false, mediaType: 'video', mediaUrl: '/footage/fatigue_002.mp4', thumbnail: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=400' },
+];
+
+// Forensic Reports Data
+const FORENSIC_REPORTS = [
+  { id: 'FOR-001', incidentId: 'INC-002', title: 'Winch Cable Failure Analysis', date: '2024-02-08', investigator: 'J. van der Merwe', status: 'completed', findings: 'Cable fatigue due to inadequate inspection interval', recommendations: ['Reduce inspection interval to 7 days', 'Replace all cables >2 years old', 'Install real-time tension monitoring'], rootCause: 'equipment', contributingFactors: ['Deferred maintenance', 'Budget constraints', 'Lack of condition monitoring'], evidenceCount: 12, videoClips: 3, photos: 8 },
+  { id: 'FOR-002', incidentId: 'INC-003', title: 'Conveyor Fire Investigation', date: '2024-02-07', investigator: 'P. Mokoena', status: 'in_progress', findings: 'Belt misalignment caused friction heating', recommendations: ['Install thermal cameras on all belt drives', 'Automated belt tracking system'], rootCause: 'equipment', contributingFactors: ['Belt wear', 'Delayed maintenance', 'Insufficient monitoring'], evidenceCount: 8, videoClips: 2, photos: 6 },
+  { id: 'FOR-003', incidentId: 'INC-008', title: 'Blasting Misfire Root Cause', date: '2024-02-02', investigator: 'S. Naidoo', status: 'completed', findings: 'Detonator connection fault', recommendations: ['100% pre-blast connection verification', 'Upgrade to electronic detonators'], rootCause: 'human', contributingFactors: ['Rush to meet production targets', 'Inadequate supervision', 'Training gap'], evidenceCount: 15, videoClips: 4, photos: 11 },
+  { id: 'FOR-004', incidentId: 'INC-010', title: 'LHD Rollover Investigation', date: '2024-01-29', investigator: 'T. Botha', status: 'completed', findings: 'Excessive speed on wet decline', recommendations: ['Mandatory speed limiters', 'Improved road conditions', 'Operator retraining'], rootCause: 'human', contributingFactors: ['Production pressure', 'Wet conditions', 'Operator fatigue'], evidenceCount: 20, videoClips: 5, photos: 15 },
 ];
 
 // Comprehensive incident data
@@ -106,6 +142,16 @@ const DEMO_INCIDENTS: IncidentReport[] = [
   { id: 'INC-010', mineName: 'Gold Mine Alpha', rightNumber: 'MR-2024-001', shaftSection: 'Level 1 Tramming', dateTime: '2024-01-28T13:00:00', incidentType: 'lti', occupation: 'LHD Operator', ppeWorn: true, ppeType: ['Helmet', 'Seatbelt'], immediateCause: 'LHD rolled on decline ramp', rootCause: 'human', correctiveActions: 'Speed limit enforcement, ROPS inspection', inspectorNotified: '2024-01-28T13:30:00', status: 'acknowledged' },
   { id: 'INC-011', mineName: 'Platinum Mine Beta', rightNumber: 'MR-2024-002', shaftSection: 'Workshop', dateTime: '2024-01-25T10:30:00', incidentType: 'fai', occupation: 'Fitter', ppeWorn: false, ppeType: [], immediateCause: 'Grinder disc shattered', rootCause: 'equipment', correctiveActions: 'Disc inspection protocol, PPE enforcement', inspectorNotified: '', status: 'submitted' },
   { id: 'INC-012', mineName: 'Coal Mine Gamma', rightNumber: 'MR-2024-003', shaftSection: 'Belt Road 2', dateTime: '2024-01-22T19:00:00', incidentType: 'near_miss', occupation: 'Electrician', ppeWorn: true, ppeType: ['Helmet', 'Insulated gloves'], immediateCause: 'Exposed live cable identified', rootCause: 'equipment', correctiveActions: 'Cable replaced, isolation procedures reviewed', inspectorNotified: '2024-01-22T19:30:00', status: 'acknowledged' },
+];
+
+// Extended incidents with media
+const INCIDENTS_WITH_MEDIA = [
+  { ...DEMO_INCIDENTS[0], mediaType: 'video' as const, mediaUrl: '/footage/inc_001.mp4', thumbnail: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=400', duration: '13s' },
+  { ...DEMO_INCIDENTS[1], mediaType: 'video' as const, mediaUrl: '/footage/inc_002.mp4', thumbnail: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400', duration: '13s' },
+  { ...DEMO_INCIDENTS[2], mediaType: 'video' as const, mediaUrl: '/footage/inc_003.mp4', thumbnail: 'https://images.unsplash.com/photo-1565793298595-6a879b1d9492?w=400', duration: '13s' },
+  { ...DEMO_INCIDENTS[3], mediaType: 'image' as const, mediaUrl: '/footage/inc_004.jpg', thumbnail: 'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400' },
+  { ...DEMO_INCIDENTS[4], mediaType: 'video' as const, mediaUrl: '/footage/inc_005.mp4', thumbnail: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400', duration: '13s' },
+  { ...DEMO_INCIDENTS[5], mediaType: 'image' as const, mediaUrl: '/footage/inc_006.jpg', thumbnail: 'https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?w=400' },
 ];
 
 // Analytics data for charts
@@ -296,10 +342,48 @@ const DAILY_LOG_ENTRIES = [
   { time: '12:00', entry: 'Toolbox talk conducted - 24 attendees', category: 'training', user: 'J. Smith' },
 ];
 
-export default function MiningSafety() {
-  const [activeTab, setActiveTab] = useState('myday');
+interface MiningSafetyProps {
+  defaultTab?: string;
+}
+
+export default function MiningSafety({ defaultTab = 'myday' }: MiningSafetyProps) {
+  const [activeTab, setActiveTab] = useState(defaultTab);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [submissionStep, setSubmissionStep] = useState(0);
+  const [selectedIncident, setSelectedIncident] = useState<typeof INCIDENTS_WITH_MEDIA[0] | null>(null);
+  const [selectedAlert, setSelectedAlert] = useState<typeof AI_MONITORING_ALERTS[0] | null>(null);
+  const [monitoringFilter, setMonitoringFilter] = useState<string>('all');
+
+  // Sync activeTab when navigating via sidebar
+  useEffect(() => {
+    setActiveTab(defaultTab);
+  }, [defaultTab]);
+
+  const getMonitoringTypeLabel = (type: string) => {
+    const labels: Record<string, string> = {
+      proximity: 'Heavy Machinery',
+      conveyor: 'Conveyor Belt',
+      dust_smoke: 'Dust/Smoke',
+      zone_access: 'Zone Access',
+      fatigue: 'Fatigue/Distraction',
+    };
+    return labels[type] || type;
+  };
+
+  const getMonitoringTypeColor = (type: string) => {
+    const colors: Record<string, string> = {
+      proximity: 'bg-orange-500',
+      conveyor: 'bg-blue-500',
+      dust_smoke: 'bg-gray-500',
+      zone_access: 'bg-red-500',
+      fatigue: 'bg-purple-500',
+    };
+    return colors[type] || 'bg-gray-500';
+  };
+
+  const filteredAlerts = monitoringFilter === 'all' 
+    ? AI_MONITORING_ALERTS 
+    : AI_MONITORING_ALERTS.filter(a => a.type === monitoringFilter);
 
   const getIncidentTypeLabel = (type: string) => {
     const labels: Record<string, string> = {
@@ -809,10 +893,51 @@ export default function MiningSafety() {
             </div>
           </div>
 
-          {/* Incident Table */}
+          {/* Incident Cards with Media */}
+          <div className="grid grid-cols-3 gap-4">
+            {INCIDENTS_WITH_MEDIA.map((incident) => (
+              <motion.div key={incident.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+                className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden hover:border-gray-600 transition-colors cursor-pointer"
+                onClick={() => setSelectedIncident(incident)}>
+                <div className="relative">
+                  <img src={incident.thumbnail} alt={incident.id} className="w-full h-40 object-cover" />
+                  <div className="absolute top-2 left-2">
+                    <span className={`px-2 py-1 rounded text-xs ${getIncidentTypeColor(incident.incidentType)} text-white`}>
+                      {getIncidentTypeLabel(incident.incidentType)}
+                    </span>
+                  </div>
+                  {incident.mediaType === 'video' && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                      <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
+                        <PlayIcon className="w-6 h-6 text-white" />
+                      </div>
+                      <span className="absolute bottom-2 right-2 px-2 py-1 bg-black/70 text-white text-xs rounded">{incident.duration}</span>
+                    </div>
+                  )}
+                </div>
+                <div className="p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-white font-mono text-sm">{incident.id}</span>
+                    <span className={`px-2 py-0.5 rounded text-xs ${incident.status === 'acknowledged' ? 'bg-green-500/20 text-green-400' : incident.status === 'submitted' ? 'bg-blue-500/20 text-blue-400' : 'bg-yellow-500/20 text-yellow-400'}`}>{incident.status}</span>
+                  </div>
+                  <p className="text-white text-sm font-medium">{incident.mineName}</p>
+                  <p className="text-gray-400 text-xs mt-1">{incident.shaftSection}</p>
+                  <p className="text-gray-500 text-xs mt-2 line-clamp-2">{incident.immediateCause}</p>
+                  <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-700">
+                    <span className="text-xs text-gray-500">{new Date(incident.dateTime).toLocaleDateString()}</span>
+                    <button className="flex items-center gap-1 text-primary-400 hover:text-primary-300 text-sm">
+                      <EyeIcon className="w-4 h-4" /> View Details
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Full Incident Table */}
           <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
             <div className="p-4 border-b border-gray-700 flex items-center justify-between">
-              <h3 className="font-semibold text-white">Incident Register</h3>
+              <h3 className="font-semibold text-white">Full Incident Register</h3>
               <div className="flex items-center gap-2">
                 <select className="px-3 py-1.5 bg-gray-900 border border-gray-700 rounded text-sm text-white">
                   <option>All Types</option>
@@ -822,12 +947,6 @@ export default function MiningSafety() {
                   <option>FAI</option>
                   <option>Near Miss</option>
                   <option>Dangerous Occurrence</option>
-                </select>
-                <select className="px-3 py-1.5 bg-gray-900 border border-gray-700 rounded text-sm text-white">
-                  <option>All Mines</option>
-                  <option>Gold Mine Alpha</option>
-                  <option>Platinum Mine Beta</option>
-                  <option>Coal Mine Gamma</option>
                 </select>
               </div>
             </div>
@@ -839,12 +958,8 @@ export default function MiningSafety() {
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">Mine / Section</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">Type</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">Date/Time</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">Occupation</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">Cause</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">Root Cause</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">PPE</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">Status</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-700">
@@ -860,27 +975,16 @@ export default function MiningSafety() {
                           {getIncidentTypeLabel(incident.incidentType)}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-400">
-                        <div>{new Date(incident.dateTime).toLocaleDateString()}</div>
-                        <div className="text-xs">{new Date(incident.dateTime).toLocaleTimeString()}</div>
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-400">{incident.occupation}</td>
-                      <td className="px-4 py-3 text-sm text-gray-400 max-w-xs truncate" title={incident.immediateCause}>{incident.immediateCause}</td>
+                      <td className="px-4 py-3 text-sm text-gray-400">{new Date(incident.dateTime).toLocaleDateString()}</td>
                       <td className="px-4 py-3">
                         <span className={`px-2 py-1 rounded text-xs ${incident.rootCause === 'human' ? 'bg-purple-500/20 text-purple-400' : incident.rootCause === 'equipment' ? 'bg-blue-500/20 text-blue-400' : 'bg-green-500/20 text-green-400'}`}>
                           {incident.rootCause}
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        {incident.ppeWorn ? <CheckCircleIcon className="w-5 h-5 text-green-400" /> : <XCircleIcon className="w-5 h-5 text-red-400" />}
-                      </td>
-                      <td className="px-4 py-3">
                         <span className={`px-2 py-1 rounded text-xs ${incident.status === 'acknowledged' ? 'bg-green-500/20 text-green-400' : incident.status === 'submitted' ? 'bg-blue-500/20 text-blue-400' : incident.status === 'pending' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-gray-500/20 text-gray-400'}`}>
                           {incident.status}
                         </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <button className="text-primary-400 hover:text-primary-300 text-sm">View</button>
                       </td>
                     </tr>
                   ))}
@@ -1077,6 +1181,228 @@ export default function MiningSafety() {
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* AI Monitoring Tab */}
+      {activeTab === 'monitoring' && (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold text-white">AI-Powered Safety Monitoring</h2>
+            <div className="flex items-center gap-3">
+              <select value={monitoringFilter} onChange={(e) => setMonitoringFilter(e.target.value)} className="px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white">
+                <option value="all">All Alerts</option>
+                <option value="proximity">Heavy Machinery</option>
+                <option value="conveyor">Conveyor Belt</option>
+                <option value="dust_smoke">Dust/Smoke</option>
+                <option value="zone_access">Zone Access</option>
+                <option value="fatigue">Fatigue/Distraction</option>
+              </select>
+              <span className="px-3 py-1 bg-red-500/20 text-red-400 rounded-full text-sm">{filteredAlerts.filter(a => !a.acknowledged).length} Active</span>
+            </div>
+          </div>
+
+          {/* Stats Grid */}
+          <div className="grid grid-cols-5 gap-3">
+            <div className={`bg-orange-500/10 border border-orange-500/30 rounded-lg p-4 cursor-pointer hover:bg-orange-500/20 transition-colors ${monitoringFilter === 'proximity' ? 'ring-2 ring-orange-500' : ''}`} onClick={() => setMonitoringFilter('proximity')}>
+              <div className="flex items-center gap-2 mb-2">
+                <TruckIcon className="w-5 h-5 text-orange-400" />
+                <span className="text-sm text-gray-400">Heavy Machinery</span>
+              </div>
+              <p className="text-2xl font-bold text-orange-400">{AI_MONITORING_ALERTS.filter(a => a.type === 'proximity').length}</p>
+              <p className="text-xs text-gray-500">{AI_MONITORING_ALERTS.filter(a => a.type === 'proximity' && !a.acknowledged).length} active</p>
+            </div>
+            <div className={`bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 cursor-pointer hover:bg-blue-500/20 transition-colors ${monitoringFilter === 'conveyor' ? 'ring-2 ring-blue-500' : ''}`} onClick={() => setMonitoringFilter('conveyor')}>
+              <div className="flex items-center gap-2 mb-2">
+                <ExclamationTriangleIcon className="w-5 h-5 text-blue-400" />
+                <span className="text-sm text-gray-400">Conveyor Belt</span>
+              </div>
+              <p className="text-2xl font-bold text-blue-400">{AI_MONITORING_ALERTS.filter(a => a.type === 'conveyor').length}</p>
+              <p className="text-xs text-gray-500">{AI_MONITORING_ALERTS.filter(a => a.type === 'conveyor' && !a.acknowledged).length} active</p>
+            </div>
+            <div className={`bg-gray-500/10 border border-gray-500/30 rounded-lg p-4 cursor-pointer hover:bg-gray-500/20 transition-colors ${monitoringFilter === 'dust_smoke' ? 'ring-2 ring-gray-500' : ''}`} onClick={() => setMonitoringFilter('dust_smoke')}>
+              <div className="flex items-center gap-2 mb-2">
+                <CloudIcon className="w-5 h-5 text-gray-400" />
+                <span className="text-sm text-gray-400">Dust/Smoke</span>
+              </div>
+              <p className="text-2xl font-bold text-gray-400">{AI_MONITORING_ALERTS.filter(a => a.type === 'dust_smoke').length}</p>
+              <p className="text-xs text-gray-500">{AI_MONITORING_ALERTS.filter(a => a.type === 'dust_smoke' && !a.acknowledged).length} active</p>
+            </div>
+            <div className={`bg-red-500/10 border border-red-500/30 rounded-lg p-4 cursor-pointer hover:bg-red-500/20 transition-colors ${monitoringFilter === 'zone_access' ? 'ring-2 ring-red-500' : ''}`} onClick={() => setMonitoringFilter('zone_access')}>
+              <div className="flex items-center gap-2 mb-2">
+                <MapPinIcon className="w-5 h-5 text-red-400" />
+                <span className="text-sm text-gray-400">Zone Access</span>
+              </div>
+              <p className="text-2xl font-bold text-red-400">{AI_MONITORING_ALERTS.filter(a => a.type === 'zone_access').length}</p>
+              <p className="text-xs text-gray-500">{AI_MONITORING_ALERTS.filter(a => a.type === 'zone_access' && !a.acknowledged).length} active</p>
+            </div>
+            <div className={`bg-purple-500/10 border border-purple-500/30 rounded-lg p-4 cursor-pointer hover:bg-purple-500/20 transition-colors ${monitoringFilter === 'fatigue' ? 'ring-2 ring-purple-500' : ''}`} onClick={() => setMonitoringFilter('fatigue')}>
+              <div className="flex items-center gap-2 mb-2">
+                <EyeIcon className="w-5 h-5 text-purple-400" />
+                <span className="text-sm text-gray-400">Fatigue</span>
+              </div>
+              <p className="text-2xl font-bold text-purple-400">{AI_MONITORING_ALERTS.filter(a => a.type === 'fatigue').length}</p>
+              <p className="text-xs text-gray-500">{AI_MONITORING_ALERTS.filter(a => a.type === 'fatigue' && !a.acknowledged).length} active</p>
+            </div>
+          </div>
+
+          {/* Alert Cards */}
+          <div className="grid grid-cols-2 gap-4">
+            {filteredAlerts.map((alert) => (
+              <motion.div key={alert.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+                className={`bg-gray-800 rounded-xl border overflow-hidden cursor-pointer hover:border-gray-600 transition-colors ${
+                  alert.severity === 'critical' ? 'border-red-500/50' : 'border-gray-700'
+                }`}
+                onClick={() => setSelectedAlert(alert)}>
+                <div className="relative">
+                  <img src={alert.thumbnail} alt={alert.title} className="w-full h-48 object-cover" />
+                  <div className="absolute top-2 left-2 flex items-center gap-2">
+                    <span className={`px-2 py-1 rounded text-xs ${getMonitoringTypeColor(alert.type)} text-white`}>
+                      {getMonitoringTypeLabel(alert.type)}
+                    </span>
+                    <span className={`px-2 py-1 rounded text-xs ${alert.severity === 'critical' ? 'bg-red-500' : 'bg-yellow-500'} text-white`}>
+                      {alert.severity.toUpperCase()}
+                    </span>
+                  </div>
+                  {alert.mediaType === 'video' && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                      <div className="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
+                        <PlayIcon className="w-8 h-8 text-white" />
+                      </div>
+                    </div>
+                  )}
+                  <div className="absolute bottom-2 right-2">
+                    <span className="px-2 py-1 bg-black/70 text-white text-xs rounded flex items-center gap-1">
+                      <VideoCameraIcon className="w-3 h-3" /> {alert.camera}
+                    </span>
+                  </div>
+                </div>
+                <div className="p-4">
+                  <div className="flex items-start justify-between mb-2">
+                    <h3 className="text-white font-medium">{alert.title}</h3>
+                    {!alert.acknowledged && <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />}
+                  </div>
+                  <p className="text-gray-400 text-sm">{alert.message}</p>
+                  <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-700">
+                    <div className="flex items-center gap-2 text-xs text-gray-500">
+                      <MapPinIcon className="w-4 h-4" /> {alert.zone}
+                    </div>
+                    <span className="text-xs text-gray-500">{alert.time}</span>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Forensics Tab */}
+      {activeTab === 'forensics' && (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold text-white">Forensic Investigation Reports</h2>
+            <button className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700">
+              <DocumentMagnifyingGlassIcon className="w-5 h-5" /> New Investigation
+            </button>
+          </div>
+
+          {/* Summary Stats */}
+          <div className="grid grid-cols-4 gap-4">
+            <div className="bg-gray-800 rounded-lg border border-gray-700 p-4">
+              <p className="text-xs text-gray-500 uppercase">Total Investigations</p>
+              <p className="text-2xl font-bold text-white">{FORENSIC_REPORTS.length}</p>
+            </div>
+            <div className="bg-green-500/10 rounded-lg border border-green-500/30 p-4">
+              <p className="text-xs text-green-400 uppercase">Completed</p>
+              <p className="text-2xl font-bold text-green-400">{FORENSIC_REPORTS.filter(r => r.status === 'completed').length}</p>
+            </div>
+            <div className="bg-yellow-500/10 rounded-lg border border-yellow-500/30 p-4">
+              <p className="text-xs text-yellow-400 uppercase">In Progress</p>
+              <p className="text-2xl font-bold text-yellow-400">{FORENSIC_REPORTS.filter(r => r.status === 'in_progress').length}</p>
+            </div>
+            <div className="bg-blue-500/10 rounded-lg border border-blue-500/30 p-4">
+              <p className="text-xs text-blue-400 uppercase">Total Evidence</p>
+              <p className="text-2xl font-bold text-blue-400">{FORENSIC_REPORTS.reduce((sum, r) => sum + r.evidenceCount, 0)}</p>
+            </div>
+          </div>
+
+          {/* Forensic Reports Grid */}
+          <div className="space-y-4">
+            {FORENSIC_REPORTS.map((report) => (
+              <motion.div key={report.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}
+                className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
+                <div className="p-6">
+                  <div className="flex items-start justify-between mb-4">
+                    <div>
+                      <div className="flex items-center gap-3 mb-2">
+                        <span className="text-white font-mono text-sm bg-gray-700 px-2 py-1 rounded">{report.id}</span>
+                        <span className="text-gray-500">→</span>
+                        <span className="text-primary-400 font-mono text-sm">{report.incidentId}</span>
+                        <span className={`px-2 py-1 rounded text-xs ${report.status === 'completed' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
+                          {report.status === 'completed' ? 'Completed' : 'In Progress'}
+                        </span>
+                      </div>
+                      <h3 className="text-xl font-semibold text-white">{report.title}</h3>
+                      <p className="text-gray-400 text-sm mt-1">Investigator: {report.investigator} • {report.date}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="text-center px-3 py-2 bg-gray-700 rounded-lg">
+                        <VideoCameraIcon className="w-5 h-5 text-blue-400 mx-auto" />
+                        <p className="text-white font-bold">{report.videoClips}</p>
+                        <p className="text-xs text-gray-500">clips</p>
+                      </div>
+                      <div className="text-center px-3 py-2 bg-gray-700 rounded-lg">
+                        <PhotoIcon className="w-5 h-5 text-green-400 mx-auto" />
+                        <p className="text-white font-bold">{report.photos}</p>
+                        <p className="text-xs text-gray-500">photos</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="bg-gray-900 rounded-lg p-4">
+                      <h4 className="text-sm font-medium text-gray-400 mb-2">Key Findings</h4>
+                      <p className="text-white">{report.findings}</p>
+                      <div className="mt-2">
+                        <span className={`px-2 py-1 rounded text-xs ${report.rootCause === 'human' ? 'bg-purple-500/20 text-purple-400' : 'bg-blue-500/20 text-blue-400'}`}>
+                          Root Cause: {report.rootCause}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="bg-gray-900 rounded-lg p-4">
+                      <h4 className="text-sm font-medium text-gray-400 mb-2">Contributing Factors</h4>
+                      <ul className="space-y-1">
+                        {report.contributingFactors.map((factor, i) => (
+                          <li key={i} className="text-sm text-gray-300 flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-red-400" /> {factor}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div className="bg-gray-900 rounded-lg p-4">
+                      <h4 className="text-sm font-medium text-gray-400 mb-2">Recommendations</h4>
+                      <ul className="space-y-1">
+                        {report.recommendations.map((rec, i) => (
+                          <li key={i} className="text-sm text-gray-300 flex items-center gap-2">
+                            <CheckCircleIcon className="w-4 h-4 text-green-400 flex-shrink-0" /> {rec}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-end gap-3 mt-4 pt-4 border-t border-gray-700">
+                    <button className="flex items-center gap-2 px-3 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 text-sm">
+                      <PrinterIcon className="w-4 h-4" /> Export PDF
+                    </button>
+                    <button className="flex items-center gap-2 px-3 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 text-sm">
+                      <EyeIcon className="w-4 h-4" /> View Full Report
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
           </div>
         </div>
       )}
@@ -1405,6 +1731,178 @@ export default function MiningSafety() {
                 <button onClick={() => setShowSubmitModal(false)} className="w-full text-gray-400 hover:text-white text-sm">Close</button>
               </div>
             )}
+          </motion.div>
+        </div>
+      )}
+
+      {/* Incident Detail Modal with Video/Image */}
+      {selectedIncident && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80" onClick={() => setSelectedIncident(null)}>
+          <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} 
+            className="bg-gray-800 rounded-xl border border-gray-700 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}>
+            <div className="relative">
+              {/* Media Display */}
+              <div className="relative bg-black aspect-video">
+                {selectedIncident.mediaType === 'video' ? (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <img src={selectedIncident.thumbnail} alt="Video thumbnail" className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                      <button className="w-20 h-20 rounded-full bg-primary-600 flex items-center justify-center hover:bg-primary-700 transition-colors">
+                        <PlayIcon className="w-10 h-10 text-white" />
+                      </button>
+                    </div>
+                    <span className="absolute bottom-4 right-4 px-3 py-1 bg-black/70 text-white text-sm rounded">13 sec clip</span>
+                  </div>
+                ) : (
+                  <img src={selectedIncident.thumbnail} alt="Incident" className="w-full h-full object-cover" />
+                )}
+              </div>
+              {/* Close Button */}
+              <button onClick={() => setSelectedIncident(null)} className="absolute top-4 right-4 p-2 bg-black/50 rounded-full hover:bg-black/70">
+                <XMarkIcon className="w-6 h-6 text-white" />
+              </button>
+            </div>
+            <div className="p-6">
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="text-white font-mono bg-gray-700 px-2 py-1 rounded">{selectedIncident.id}</span>
+                    <span className={`px-2 py-1 rounded text-xs ${getIncidentTypeColor(selectedIncident.incidentType)} text-white`}>
+                      {getIncidentTypeLabel(selectedIncident.incidentType)}
+                    </span>
+                    <span className={`px-2 py-1 rounded text-xs ${selectedIncident.status === 'acknowledged' ? 'bg-green-500/20 text-green-400' : selectedIncident.status === 'submitted' ? 'bg-blue-500/20 text-blue-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
+                      {selectedIncident.status}
+                    </span>
+                  </div>
+                  <h2 className="text-xl font-semibold text-white">{selectedIncident.mineName}</h2>
+                  <p className="text-gray-400">{selectedIncident.shaftSection}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-white">{new Date(selectedIncident.dateTime).toLocaleDateString()}</p>
+                  <p className="text-gray-500 text-sm">{new Date(selectedIncident.dateTime).toLocaleTimeString()}</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div className="bg-gray-900 rounded-lg p-4">
+                  <h4 className="text-sm font-medium text-gray-400 mb-2">Immediate Cause</h4>
+                  <p className="text-white">{selectedIncident.immediateCause}</p>
+                </div>
+                <div className="bg-gray-900 rounded-lg p-4">
+                  <h4 className="text-sm font-medium text-gray-400 mb-2">Root Cause</h4>
+                  <span className={`px-3 py-1 rounded text-sm ${selectedIncident.rootCause === 'human' ? 'bg-purple-500/20 text-purple-400' : selectedIncident.rootCause === 'equipment' ? 'bg-blue-500/20 text-blue-400' : 'bg-green-500/20 text-green-400'}`}>
+                    {selectedIncident.rootCause.charAt(0).toUpperCase() + selectedIncident.rootCause.slice(1)}
+                  </span>
+                </div>
+              </div>
+              <div className="bg-gray-900 rounded-lg p-4 mb-4">
+                <h4 className="text-sm font-medium text-gray-400 mb-2">Corrective Actions</h4>
+                <p className="text-white">{selectedIncident.correctiveActions}</p>
+              </div>
+              <div className="flex items-center justify-between pt-4 border-t border-gray-700">
+                <div className="flex items-center gap-4">
+                  <span className="text-sm text-gray-500">Occupation: <span className="text-white">{selectedIncident.occupation}</span></span>
+                  <span className="text-sm text-gray-500">PPE Worn: {selectedIncident.ppeWorn ? <CheckCircleIcon className="w-5 h-5 text-green-400 inline" /> : <XCircleIcon className="w-5 h-5 text-red-400 inline" />}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button className="flex items-center gap-2 px-3 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 text-sm">
+                    <PrinterIcon className="w-4 h-4" /> Export
+                  </button>
+                  <button className="flex items-center gap-2 px-3 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 text-sm">
+                    <DocumentMagnifyingGlassIcon className="w-4 h-4" /> Open Forensic Report
+                  </button>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* AI Monitoring Alert Detail Modal */}
+      {selectedAlert && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80" onClick={() => setSelectedAlert(null)}>
+          <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} 
+            className="bg-gray-800 rounded-xl border border-gray-700 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}>
+            <div className="relative">
+              {/* Media Display */}
+              <div className="relative bg-black aspect-video">
+                {selectedAlert.mediaType === 'video' ? (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <img src={selectedAlert.thumbnail} alt="Alert thumbnail" className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                      <button className="w-20 h-20 rounded-full bg-red-600 flex items-center justify-center hover:bg-red-700 transition-colors">
+                        <PlayIcon className="w-10 h-10 text-white" />
+                      </button>
+                    </div>
+                    <span className="absolute bottom-4 right-4 px-3 py-1 bg-black/70 text-white text-sm rounded">Live Recording</span>
+                  </div>
+                ) : (
+                  <img src={selectedAlert.thumbnail} alt="Alert" className="w-full h-full object-cover" />
+                )}
+              </div>
+              {/* Close Button */}
+              <button onClick={() => setSelectedAlert(null)} className="absolute top-4 right-4 p-2 bg-black/50 rounded-full hover:bg-black/70">
+                <XMarkIcon className="w-6 h-6 text-white" />
+              </button>
+              {/* Severity Badge */}
+              <div className="absolute top-4 left-4">
+                <span className={`px-3 py-1 rounded text-sm font-bold ${selectedAlert.severity === 'critical' ? 'bg-red-500' : 'bg-yellow-500'} text-white`}>
+                  {selectedAlert.severity.toUpperCase()} ALERT
+                </span>
+              </div>
+            </div>
+            <div className="p-6">
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="text-white font-mono bg-gray-700 px-2 py-1 rounded">{selectedAlert.id}</span>
+                    <span className={`px-2 py-1 rounded text-xs ${getMonitoringTypeColor(selectedAlert.type)} text-white`}>
+                      {getMonitoringTypeLabel(selectedAlert.type)}
+                    </span>
+                  </div>
+                  <h2 className="text-xl font-semibold text-white">{selectedAlert.title}</h2>
+                </div>
+                <div className="text-right">
+                  <p className="text-gray-400 text-sm">{selectedAlert.time}</p>
+                  <p className="text-gray-500 text-xs">Camera: {selectedAlert.camera}</p>
+                </div>
+              </div>
+              <div className="bg-gray-900 rounded-lg p-4 mb-4">
+                <h4 className="text-sm font-medium text-gray-400 mb-2">Alert Details</h4>
+                <p className="text-white text-lg">{selectedAlert.message}</p>
+              </div>
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div className="bg-gray-900 rounded-lg p-4">
+                  <h4 className="text-sm font-medium text-gray-400 mb-2">Location</h4>
+                  <div className="flex items-center gap-2">
+                    <MapPinIcon className="w-5 h-5 text-primary-400" />
+                    <span className="text-white">{selectedAlert.zone}</span>
+                  </div>
+                </div>
+                <div className="bg-gray-900 rounded-lg p-4">
+                  <h4 className="text-sm font-medium text-gray-400 mb-2">Status</h4>
+                  <span className={`px-3 py-1 rounded ${selectedAlert.acknowledged ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                    {selectedAlert.acknowledged ? 'Acknowledged' : 'Requires Action'}
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center justify-between pt-4 border-t border-gray-700">
+                <button className="flex items-center gap-2 px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600">
+                  <PrinterIcon className="w-4 h-4" /> Export Report
+                </button>
+                <div className="flex items-center gap-2">
+                  {!selectedAlert.acknowledged && (
+                    <button className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                      <CheckCircleIcon className="w-5 h-5" /> Acknowledge Alert
+                    </button>
+                  )}
+                  <button className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700">
+                    <ExclamationTriangleIcon className="w-5 h-5" /> Create Incident
+                  </button>
+                </div>
+              </div>
+            </div>
           </motion.div>
         </div>
       )}
