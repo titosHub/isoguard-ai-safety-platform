@@ -1,16 +1,34 @@
-import { Routes, Route, Navigate, Outlet } from 'react-router-dom'
+import { useEffect } from 'react'
+import { Routes, Route, Navigate, Outlet, useParams } from 'react-router-dom'
 import DashboardLayout from './components/layout/DashboardLayout'
 import Settings from './pages/Settings'
 import Admin from './pages/Admin'
 import ReportBuilder from './pages/ReportBuilder'
 import ExecutiveBoard from './pages/executive/ExecutiveBoard'
 import SolutionsLanding from './pages/solutions/SolutionsLanding'
+import { useEntitlements } from './entitlements/EntitlementsContext'
 import SectorRouteSync from './solutions/SectorRouteSync'
 import { useSector } from './solutions/SectorContext'
 import { solutionPath } from './solutions/registry'
 import { SectorIndexRedirect, SectorModulePage, SectorToolRouter, SectorLegacyRedirect } from './pages/solutions/SectorRoutes'
 
 function SectorShell() {
+  const { sector } = useParams()
+  const { setActiveSolutionId } = useSector()
+  const { loading, isEntitled } = useEntitlements()
+
+  const entitled = sector ? isEntitled(sector) : false
+
+  useEffect(() => {
+    if (!loading && sector && !entitled) {
+      setActiveSolutionId(null)
+    }
+  }, [loading, sector, entitled, setActiveSolutionId])
+
+  if (!sector) return <Navigate to="/solutions" replace />
+  if (loading) return <div className="text-gray-400">Loading…</div>
+  if (!entitled) return <Navigate to="/solutions" replace state={{ lockedSector: sector }} />
+
   return (
     <>
       <SectorRouteSync />

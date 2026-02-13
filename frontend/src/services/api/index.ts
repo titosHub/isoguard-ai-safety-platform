@@ -10,9 +10,11 @@ export { default as analyticsService } from './analyticsService';
 export { default as forensicsService } from './forensicsService';
 export { default as mediaService } from './mediaService';
 export { default as alertsService } from './alertsService';
+export { default as entitlementsService } from './entitlementsService';
 
 // Types
 export type { LoginRequest, RegisterRequest, AuthResponse, User } from './authService';
+export type { EntitlementsMeResponse, SectorAccess, AccessRequestCreate, AccessRequestResponse } from './entitlementsService';
 export type { Incident, IncidentFilters, IncidentCreate, IncidentUpdate } from './incidentsService';
 export type { Camera, CameraCreate, CameraUpdate, CameraStats } from './camerasService';
 export type { Site, Zone, SiteCreate, SiteUpdate, ZoneCreate, ZoneUpdate } from './sitesService';

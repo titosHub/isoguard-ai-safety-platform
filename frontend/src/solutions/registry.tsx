@@ -288,7 +288,7 @@ export const SOLUTIONS: SolutionDefinition[] = [
     ],
   },
   {
-    id: 'manufacturing',
+    id: 'agriculture',
     name: 'Agriculture',
     shortDescription: 'Animal behavior anomalies and farm safety monitoring.',
     icon: SunIcon,

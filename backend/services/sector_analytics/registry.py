@@ -19,7 +19,10 @@ def get_plugin(sector_id: str) -> SectorAnalyticsPlugin:
     return _PLUGINS.get(sector_id) or DemoSectorAnalyticsPlugin(sector_id=sector_id)
 
 
-async def get_global_executive_overview() -> ExecutiveBoardView:
+async def get_global_executive_overview(
+    *,
+    sector_ids: Optional[List[str]] = None,
+) -> ExecutiveBoardView:
     """Compute a global (cross-sector) executive overview.
 
     NOTE: In production, this should aggregate across organizations/sites with
@@ -28,7 +31,8 @@ async def get_global_executive_overview() -> ExecutiveBoardView:
 
     sector_views: List[ExecutiveBoardView] = []
 
-    for sector_id in SUPPORTED_SECTORS:
+    ids = sector_ids or list(SUPPORTED_SECTORS)
+    for sector_id in ids:
         plugin = get_plugin(sector_id)
         sector_views.append(await plugin.get_executive_view(days=30))
 

@@ -11,6 +11,7 @@ from fastapi.responses import FileResponse
 
 from core.security import get_current_user
 from models.schemas import ReportRequest, ReportResponse
+from services.entitlements_service import require_sector_entitlement
 from services.reporting.renderer import render_report
 from services.sector_analytics.registry import get_plugin
 from solutions.loader import load_sector_config
@@ -56,6 +57,8 @@ async def generate_report(
 
     sector_name = None
     if report.sector_id:
+        require_sector_entitlement(current_user, report.sector_id)
+
         try:
             cfg = load_sector_config(report.sector_id)
             sector_name = cfg.name
@@ -93,6 +96,8 @@ async def generate_report(
 
     _REPORTS[report_id] = {
         'id': report_id,
+        'user_id': current_user.get('user_id'),
+        'sector_id': report.sector_id,
         'report_type': report.report_type,
         'format': fmt,
         'path': str(out_path),
@@ -117,7 +122,7 @@ async def list_reports(
     limit: int = Query(20, ge=1, le=100),
     current_user: dict = Depends(get_current_user),
 ):
-    items = list(_REPORTS.values())
+    items = [r for r in _REPORTS.values() if r.get('user_id') == current_user.get('user_id')]
 
     if report_type:
         items = [r for r in items if r.get('report_type') == report_type]
@@ -143,7 +148,7 @@ async def get_report(
     current_user: dict = Depends(get_current_user),
 ):
     r = _REPORTS.get(report_id)
-    if not r:
+    if not r or r.get('user_id') != current_user.get('user_id'):
         raise HTTPException(status_code=404, detail='Report not found')
 
     return ReportResponse(
@@ -162,7 +167,7 @@ async def download_report(
     current_user: dict = Depends(get_current_user),
 ):
     r = _REPORTS.get(report_id)
-    if not r:
+    if not r or r.get('user_id') != current_user.get('user_id'):
         raise HTTPException(status_code=404, detail='Report not found')
 
     path = Path(r['path'])
@@ -195,6 +200,8 @@ async def list_report_templates(
     """
 
     if sector_id:
+        require_sector_entitlement(current_user, sector_id)
+
         try:
             cfg = load_sector_config(sector_id)
             return [t.model_dump() for t in cfg.report_templates]

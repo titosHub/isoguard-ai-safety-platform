@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { BrowserRouter } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import App from './App'
+import { EntitlementsProvider } from './entitlements/EntitlementsContext'
 import { SectorProvider } from './solutions/SectorContext'
 import './styles/index.css'
 
@@ -21,14 +22,16 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <SectorProvider>
-          <App />
-          <Toaster
-            position="top-right"
-            toastOptions={{
-              className: 'bg-dashboard-card text-gray-100 border border-dashboard-border',
-              duration: 4000,
-            }}
-          />
+          <EntitlementsProvider>
+            <App />
+            <Toaster
+              position="top-right"
+              toastOptions={{
+                className: 'bg-dashboard-card text-gray-100 border border-dashboard-border',
+                duration: 4000,
+              }}
+            />
+          </EntitlementsProvider>
         </SectorProvider>
       </BrowserRouter>
     </QueryClientProvider>
