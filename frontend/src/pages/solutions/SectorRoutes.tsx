@@ -8,6 +8,8 @@ import Reports from '../Reports'
 import Forensics from '../Forensics'
 import MediaUpload from '../MediaUpload'
 import GovernmentSubmit from './GovernmentSubmit'
+import SectorRules from './SectorRules'
+import TrainingModels from './TrainingModels'
 
 function useSolutionFromRoute() {
   const { sector } = useParams()
@@ -50,6 +52,10 @@ export function SectorToolRouter({ slug }: { slug: SolutionSlug }) {
       return <Cameras />
     case 'reports':
       return <Reports />
+    case 'rules':
+      return <SectorRules />
+    case 'models':
+      return <TrainingModels />
     case 'forensics':
       return <Forensics />
     case 'media':

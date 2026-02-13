@@ -68,6 +68,8 @@ function App() {
           {/* tool pages (sector-specific sidebar drives these) */}
           <Route path="cameras" element={<SectorToolRouter slug="cameras" />} />
           <Route path="reports" element={<SectorToolRouter slug="reports" />} />
+          <Route path="rules" element={<SectorToolRouter slug="rules" />} />
+          <Route path="models" element={<SectorToolRouter slug="models" />} />
           <Route path="forensics" element={<SectorToolRouter slug="forensics" />} />
           <Route path="media" element={<SectorToolRouter slug="media" />} />
           <Route path="government-submit" element={<SectorToolRouter slug="government-submit" />} />

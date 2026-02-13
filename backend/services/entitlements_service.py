@@ -15,10 +15,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime
+import os
 from typing import Dict, List, Optional
 
 from fastapi import HTTPException, status
 
+from core.config import settings
 from solutions.registry import SUPPORTED_SECTORS
 
 
@@ -38,8 +40,23 @@ _DEMO_ENTITLEMENTS_BY_USER_ID: Dict[str, Entitlements] = {
 _DEMO_ACCESS_REQUESTS: List[dict] = []
 
 
+def _strict_entitlements_enabled() -> bool:
+    """Return True if entitlement enforcement should be strict in development.
+
+    By default, local development can unlock all sectors so you can navigate and
+    iterate quickly. Set ISOGUARD_ENTITLEMENTS_STRICT=1 to re-enable locking.
+    """
+
+    return os.getenv('ISOGUARD_ENTITLEMENTS_STRICT', '').strip().lower() in ('1', 'true', 'yes')
+
+
 def get_entitlements_for_user(user: dict) -> Entitlements:
     user_id = user.get('user_id') or 'anonymous'
+
+    # Development convenience: unlock all sectors unless strict mode is enabled.
+    if settings.ENVIRONMENT == 'development' and not _strict_entitlements_enabled():
+        return Entitlements(entitled_sectors=list(SUPPORTED_SECTORS), tier='dev')
+
     return _DEMO_ENTITLEMENTS_BY_USER_ID.get(user_id, Entitlements(entitled_sectors=['mining'], tier='starter'))
 
 

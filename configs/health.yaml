@@ -23,7 +23,23 @@ rules:
 report_templates:
   - id: template-daily
     name: Daily Safety Report
-    description: Daily summary of incidents and KPIs.
+    description: Daily summary of incidents and KPIs for clinical operations.
+    formats: ["pdf", "csv", "json", "xlsx"]
+  - id: template-weekly
+    name: Weekly Hygiene & Safety Report
+    description: Weekly trends for hygiene compliance and safety-related incidents.
+    formats: ["pdf", "csv", "json", "xlsx"]
+  - id: template-monthly
+    name: Monthly Executive Quality & Safety
+    description: Monthly executive report for leadership and quality governance.
+    formats: ["pdf", "csv", "json", "xlsx"]
+  - id: template-compliance
+    name: Clinical Safety Compliance Report
+    description: Audit documentation for safety programs, training, and incident registers.
+    formats: ["pdf", "csv", "json", "xlsx"]
+  - id: template-flow-correlation
+    name: Patient Flow & Incident Correlation
+    description: Correlate patient flow/throughput with incident patterns (operational insights).
     formats: ["pdf", "csv", "json", "xlsx"]
   - id: template-government
     name: Government Submission Bundle

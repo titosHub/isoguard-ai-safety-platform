@@ -20,6 +20,10 @@ export default function SolutionsLanding() {
   const [submitError, setSubmitError] = useState<string | null>(null)
 
   const lockedSectorFromRedirect = (location.state as any)?.lockedSector as string | undefined
+  const lockedSolutionFromRedirect = useMemo(() => {
+    if (!lockedSectorFromRedirect) return null
+    return SOLUTIONS.find((s) => s.id === lockedSectorFromRedirect) ?? null
+  }, [lockedSectorFromRedirect])
 
   const lockedSolutions = useMemo(() => {
     if (!entitlements) return []
@@ -81,8 +85,21 @@ export default function SolutionsLanding() {
         </div>
 
         {lockedSectorFromRedirect && (
-          <div className="mt-6 p-3 rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-200 text-sm">
-            Your subscription does not include <span className="font-semibold">{lockedSectorFromRedirect}</span>. Request access to unlock it.
+          <div className="mt-6 p-3 rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-200 text-sm flex items-center justify-between gap-3">
+            <div>
+              Your subscription does not include{' '}
+              <span className="font-semibold">{lockedSolutionFromRedirect?.name ?? lockedSectorFromRedirect}</span>.
+              {' '}Request access to unlock it.
+            </div>
+            <button
+              className="px-3 py-1.5 rounded-md bg-amber-500/20 border border-amber-400/30 text-amber-100 hover:bg-amber-500/25"
+              onClick={() => {
+                setModalOpen(true)
+                setSelectedSectorId(lockedSectorFromRedirect)
+              }}
+            >
+              Request access
+            </button>
           </div>
         )}
 

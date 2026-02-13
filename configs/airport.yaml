@@ -59,6 +59,10 @@ report_templates:
     name: Compliance Report
     description: Aviation security and compliance documentation.
     formats: ["pdf", "csv", "json", "xlsx"]
+  - id: template-queue-performance
+    name: Queue Performance & Passenger Flow
+    description: SLA-focused queue performance report with passenger flow indicators.
+    formats: ["pdf", "csv", "json", "xlsx"]
   - id: template-government
     name: Government Submission Bundle
     description: Standardized export bundle for regulators.

@@ -23,7 +23,23 @@ rules:
 report_templates:
   - id: template-daily
     name: Daily Public Safety Report
-    description: Daily summary of incidents and KPIs.
+    description: Daily summary of public safety incidents and KPIs.
+    formats: ["pdf", "csv", "json", "xlsx"]
+  - id: template-weekly
+    name: Weekly Public Safety Trends
+    description: Weekly trends in incidents, hotspots, and response times.
+    formats: ["pdf", "csv", "json", "xlsx"]
+  - id: template-monthly
+    name: Monthly Executive City Safety
+    description: Monthly executive overview for city leadership and partners.
+    formats: ["pdf", "csv", "json", "xlsx"]
+  - id: template-compliance
+    name: Compliance & Privacy Report
+    description: Audit-friendly report for camera governance, privacy, and policy coverage.
+    formats: ["pdf", "csv", "json", "xlsx"]
+  - id: template-camera-tamper-audit
+    name: Camera Tamper Audit Report
+    description: Investigations and audit record for camera tamper and downtime events.
     formats: ["pdf", "csv", "json", "xlsx"]
   - id: template-government
     name: Government Submission Bundle

@@ -23,7 +23,23 @@ rules:
 report_templates:
   - id: template-daily
     name: Daily Safety Report
-    description: Daily summary of incidents and KPIs.
+    description: Daily summary of incidents, near-misses, and KPI coverage.
+    formats: ["pdf", "csv", "json", "xlsx"]
+  - id: template-weekly
+    name: Weekly LOTO & Machine Safety Report
+    description: Weekly trends on LOTO adherence, guarding, and unsafe behavior detections.
+    formats: ["pdf", "csv", "json", "xlsx"]
+  - id: template-monthly
+    name: Monthly Executive Report
+    description: Monthly executive view for plant leadership.
+    formats: ["pdf", "csv", "json", "xlsx"]
+  - id: template-compliance
+    name: OSHA / ISO 45001 Compliance Report
+    description: Compliance documentation for audits and regulators.
+    formats: ["pdf", "csv", "json", "xlsx"]
+  - id: template-corrective-actions
+    name: Corrective Actions & Near-Miss Review
+    description: Review of corrective actions, closure rates, and near-miss learnings.
     formats: ["pdf", "csv", "json", "xlsx"]
   - id: template-government
     name: Government Submission Bundle

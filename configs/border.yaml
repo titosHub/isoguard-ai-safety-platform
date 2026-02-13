@@ -23,7 +23,23 @@ rules:
 report_templates:
   - id: template-daily
     name: Daily Operations Report
-    description: Daily summary of incidents and KPIs.
+    description: Daily summary of border incidents, detections, and KPIs.
+    formats: ["pdf", "csv", "json", "xlsx"]
+  - id: template-weekly
+    name: Weekly Border Activity Report
+    description: Weekly trends for detections, staffing, and operational performance.
+    formats: ["pdf", "csv", "json", "xlsx"]
+  - id: template-monthly
+    name: Monthly Command Review
+    description: Executive-level monthly summary for leadership and oversight.
+    formats: ["pdf", "csv", "json", "xlsx"]
+  - id: template-compliance
+    name: Compliance & Incident Register
+    description: Auditable register of incidents, escalations, and response timelines.
+    formats: ["pdf", "csv", "json", "xlsx"]
+  - id: template-perimeter-breach-pack
+    name: Perimeter Breach Incident Pack
+    description: Forensics-ready pack of perimeter breach events and evidence references.
     formats: ["pdf", "csv", "json", "xlsx"]
   - id: template-government
     name: Government Submission Bundle

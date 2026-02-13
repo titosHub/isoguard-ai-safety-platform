@@ -48,6 +48,10 @@ report_templates:
     name: Compliance Report
     description: Agriculture safety compliance documentation.
     formats: ["pdf", "csv", "json", "xlsx"]
+  - id: template-chemical-handling
+    name: Chemical Handling & PPE Report
+    description: Focus report for chemical handling zones and PPE compliance.
+    formats: ["pdf", "csv", "json", "xlsx"]
   - id: template-government
     name: Government Submission Bundle
     description: Standardized export bundle for regulators.

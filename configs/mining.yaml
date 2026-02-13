@@ -59,6 +59,10 @@ report_templates:
     name: Compliance Report
     description: ISO 45001 and mining compliance documentation.
     formats: ["pdf", "csv", "json", "xlsx"]
+  - id: template-shift-log-summary
+    name: Shift Log Summary
+    description: Shift-level summary aligned to incidents, near-misses, and high-risk zones.
+    formats: ["pdf", "csv", "json", "xlsx"]
   - id: template-government
     name: Government Submission Bundle
     description: Standardized export bundle for regulators.

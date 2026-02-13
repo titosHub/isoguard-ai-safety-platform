@@ -23,7 +23,23 @@ rules:
 report_templates:
   - id: template-daily
     name: Daily Safety Report
-    description: Daily summary of incidents and KPIs.
+    description: Daily summary of incidents, forklift interactions, and KPIs.
+    formats: ["pdf", "csv", "json", "xlsx"]
+  - id: template-weekly
+    name: Weekly Forklift & Proximity Report
+    description: Weekly trends for forklift proximity, speed, and pedestrian interactions.
+    formats: ["pdf", "csv", "json", "xlsx"]
+  - id: template-monthly
+    name: Monthly Executive Report
+    description: Monthly executive overview for distribution leadership.
+    formats: ["pdf", "csv", "json", "xlsx"]
+  - id: template-compliance
+    name: OSHA / ISO 45001 Compliance Report
+    description: Audit documentation for safety compliance and training records.
+    formats: ["pdf", "csv", "json", "xlsx"]
+  - id: template-traffic-heatmap
+    name: Traffic & Congestion Heatmap Report
+    description: Hotspot analysis for vehicle/pedestrian traffic and near-misses.
     formats: ["pdf", "csv", "json", "xlsx"]
   - id: template-government
     name: Government Submission Bundle

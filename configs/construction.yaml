@@ -23,7 +23,23 @@ rules:
 report_templates:
   - id: template-daily
     name: Daily Safety Report
-    description: Daily summary of incidents and KPIs.
+    description: Daily summary of incidents, hazards, and site KPIs.
+    formats: ["pdf", "csv", "json", "xlsx"]
+  - id: template-weekly
+    name: Weekly Fall Hazard & PPE Report
+    description: Weekly trends for fall hazards, PPE compliance, and high-risk areas.
+    formats: ["pdf", "csv", "json", "xlsx"]
+  - id: template-monthly
+    name: Monthly Executive Report
+    description: Monthly executive report for project leadership.
+    formats: ["pdf", "csv", "json", "xlsx"]
+  - id: template-compliance
+    name: OSHA / ISO 45001 Compliance Report
+    description: Audit-friendly compliance documentation and incident registers.
+    formats: ["pdf", "csv", "json", "xlsx"]
+  - id: template-toolbox-talks
+    name: Toolbox Talks & Induction Summary
+    description: Training/induction summary aligned to reported hazards and incident types.
     formats: ["pdf", "csv", "json", "xlsx"]
   - id: template-government
     name: Government Submission Bundle

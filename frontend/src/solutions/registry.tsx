@@ -37,6 +37,8 @@ export type SolutionSlug =
   | 'analytics'
   | 'cameras'
   | 'reports'
+  | 'rules'
+  | 'models'
   | 'forensics'
   | 'media'
   | 'government-submit'
@@ -104,6 +106,8 @@ export const SOLUTIONS: SolutionDefinition[] = [
       { label: 'Shift Reports', slug: 'shift-reports', icon: ClipboardDocumentCheckIcon },
       { label: 'Forensics', slug: 'forensics', icon: MagnifyingGlassIcon },
       { label: 'Reports', slug: 'reports', icon: DocumentChartBarIcon },
+      { label: 'Safety Rules Engine', slug: 'rules', icon: ClipboardDocumentCheckIcon },
+      { label: 'Training Models', slug: 'models', icon: CubeIcon },
       { label: 'Media Upload', slug: 'media', icon: CloudArrowUpIcon },
       { label: 'Government Submit', slug: 'government-submit', icon: PaperAirplaneIcon },
     ],
@@ -133,6 +137,8 @@ export const SOLUTIONS: SolutionDefinition[] = [
       { label: 'Live Cameras', slug: 'cameras', icon: VideoCameraIcon },
       { label: 'Forensics', slug: 'forensics', icon: MagnifyingGlassIcon },
       { label: 'Reports', slug: 'reports', icon: DocumentChartBarIcon },
+      { label: 'Safety Rules Engine', slug: 'rules', icon: ClipboardDocumentCheckIcon },
+      { label: 'Training Models', slug: 'models', icon: CubeIcon },
       { label: 'Media Upload', slug: 'media', icon: CloudArrowUpIcon },
       { label: 'Government Submit', slug: 'government-submit', icon: PaperAirplaneIcon },
     ],
@@ -158,6 +164,8 @@ export const SOLUTIONS: SolutionDefinition[] = [
       { label: 'Live Cameras', slug: 'cameras', icon: VideoCameraIcon },
       { label: 'Forensics', slug: 'forensics', icon: MagnifyingGlassIcon },
       { label: 'Reports', slug: 'reports', icon: DocumentChartBarIcon },
+      { label: 'Safety Rules Engine', slug: 'rules', icon: ClipboardDocumentCheckIcon },
+      { label: 'Training Models', slug: 'models', icon: CubeIcon },
       { label: 'Media Upload', slug: 'media', icon: CloudArrowUpIcon },
       { label: 'Government Submit', slug: 'government-submit', icon: PaperAirplaneIcon },
     ],
@@ -183,6 +191,8 @@ export const SOLUTIONS: SolutionDefinition[] = [
       { label: 'Live Cameras', slug: 'cameras', icon: VideoCameraIcon },
       { label: 'Forensics', slug: 'forensics', icon: MagnifyingGlassIcon },
       { label: 'Reports', slug: 'reports', icon: DocumentChartBarIcon },
+      { label: 'Safety Rules Engine', slug: 'rules', icon: ClipboardDocumentCheckIcon },
+      { label: 'Training Models', slug: 'models', icon: CubeIcon },
       { label: 'Media Upload', slug: 'media', icon: CloudArrowUpIcon },
       { label: 'Government Submit', slug: 'government-submit', icon: PaperAirplaneIcon },
     ],
@@ -208,6 +218,8 @@ export const SOLUTIONS: SolutionDefinition[] = [
       { label: 'Live Cameras', slug: 'cameras', icon: VideoCameraIcon },
       { label: 'Forensics', slug: 'forensics', icon: MagnifyingGlassIcon },
       { label: 'Reports', slug: 'reports', icon: DocumentChartBarIcon },
+      { label: 'Safety Rules Engine', slug: 'rules', icon: ClipboardDocumentCheckIcon },
+      { label: 'Training Models', slug: 'models', icon: CubeIcon },
       { label: 'Media Upload', slug: 'media', icon: CloudArrowUpIcon },
       { label: 'Government Submit', slug: 'government-submit', icon: PaperAirplaneIcon },
     ],
@@ -233,6 +245,8 @@ export const SOLUTIONS: SolutionDefinition[] = [
       { label: 'Live Cameras', slug: 'cameras', icon: VideoCameraIcon },
       { label: 'Forensics', slug: 'forensics', icon: MagnifyingGlassIcon },
       { label: 'Reports', slug: 'reports', icon: DocumentChartBarIcon },
+      { label: 'Safety Rules Engine', slug: 'rules', icon: ClipboardDocumentCheckIcon },
+      { label: 'Training Models', slug: 'models', icon: CubeIcon },
       { label: 'Media Upload', slug: 'media', icon: CloudArrowUpIcon },
       { label: 'Government Submit', slug: 'government-submit', icon: PaperAirplaneIcon },
     ],
@@ -258,6 +272,8 @@ export const SOLUTIONS: SolutionDefinition[] = [
       { label: 'Live Cameras', slug: 'cameras', icon: VideoCameraIcon },
       { label: 'Forensics', slug: 'forensics', icon: MagnifyingGlassIcon },
       { label: 'Reports', slug: 'reports', icon: DocumentChartBarIcon },
+      { label: 'Safety Rules Engine', slug: 'rules', icon: ClipboardDocumentCheckIcon },
+      { label: 'Training Models', slug: 'models', icon: CubeIcon },
       { label: 'Media Upload', slug: 'media', icon: CloudArrowUpIcon },
       { label: 'Government Submit', slug: 'government-submit', icon: PaperAirplaneIcon },
     ],
@@ -283,6 +299,8 @@ export const SOLUTIONS: SolutionDefinition[] = [
       { label: 'Live Cameras', slug: 'cameras', icon: VideoCameraIcon },
       { label: 'Forensics', slug: 'forensics', icon: MagnifyingGlassIcon },
       { label: 'Reports', slug: 'reports', icon: DocumentChartBarIcon },
+      { label: 'Safety Rules Engine', slug: 'rules', icon: ClipboardDocumentCheckIcon },
+      { label: 'Training Models', slug: 'models', icon: CubeIcon },
       { label: 'Media Upload', slug: 'media', icon: CloudArrowUpIcon },
       { label: 'Government Submit', slug: 'government-submit', icon: PaperAirplaneIcon },
     ],
@@ -308,6 +326,8 @@ export const SOLUTIONS: SolutionDefinition[] = [
       { label: 'Live Cameras', slug: 'cameras', icon: VideoCameraIcon },
       { label: 'Forensics', slug: 'forensics', icon: MagnifyingGlassIcon },
       { label: 'Reports', slug: 'reports', icon: DocumentChartBarIcon },
+      { label: 'Safety Rules Engine', slug: 'rules', icon: ClipboardDocumentCheckIcon },
+      { label: 'Training Models', slug: 'models', icon: CubeIcon },
       { label: 'Media Upload', slug: 'media', icon: CloudArrowUpIcon },
       { label: 'Government Submit', slug: 'government-submit', icon: PaperAirplaneIcon },
     ],
