@@ -10,11 +10,14 @@ export default function SolutionsLanding() {
   return (
     <div className="min-h-screen bg-dashboard-bg">
       <div className="max-w-6xl mx-auto px-6 py-10">
-        <div className="flex items-center gap-3">
-          <img src="/isoguard-logo.svg" alt="IsoGuard.Ai" className="h-9 w-auto" />
-          <div>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
+          <div className="flex items-center">
+            <img src="/isoguard-logo.svg" alt="IsoGuard.Ai" className="h-10 w-auto" />
+          </div>
+
+          <div className="sm:border-l sm:border-dashboard-border sm:pl-6">
             <h1 className="text-2xl font-bold text-white">Select a Solution</h1>
-            <p className="text-sm text-gray-400">
+            <p className="mt-1 text-sm text-gray-400 max-w-2xl">
               Choose an industry solution to open the sector-specific dashboard.
             </p>
           </div>
