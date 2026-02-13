@@ -2,132 +2,25 @@ import { useState } from 'react'
 import { Outlet, NavLink, useLocation } from 'react-router-dom'
 import { clsx } from 'clsx'
 import {
-  HomeIcon,
-  ExclamationTriangleIcon,
-  ChartBarIcon,
-  VideoCameraIcon,
-  BuildingOfficeIcon,
-  DocumentChartBarIcon,
-  Cog6ToothIcon,
   Bars3Icon,
   BellIcon,
   UserCircleIcon,
-  MagnifyingGlassIcon,
-  CloudArrowUpIcon,
-  UserGroupIcon,
   BellAlertIcon,
-  ShieldExclamationIcon,
-  CubeIcon,
-  ChevronDownIcon,
-  ChevronRightIcon,
-  WrenchScrewdriverIcon,
-  BuildingStorefrontIcon,
-  HeartIcon,
-  HomeModernIcon,
-  PaperAirplaneIcon,
+  Cog6ToothIcon,
+  UserGroupIcon,
+  Squares2X2Icon,
 } from '@heroicons/react/24/outline'
 import AlertScreen from '../AlertScreen'
+import { useSector } from '../../solutions/SectorContext'
+import { solutionPath } from '../../solutions/registry'
 
-// Navigation categories with expandable sections
-interface NavItem {
-  name: string;
-  href: string;
-  icon: React.ComponentType<{ className?: string }>;
+interface SimpleNavItem {
+  name: string
+  href: string
+  icon: React.ComponentType<{ className?: string }>
 }
 
-interface NavCategory {
-  name: string;
-  icon: React.ComponentType<{ className?: string }>;
-  color: string;
-  items: NavItem[];
-}
-
-const mainNavigation: NavItem[] = [
-  { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
-]
-
-const categories: NavCategory[] = [
-  {
-    name: 'Mining',
-    icon: CubeIcon,
-    color: 'text-amber-400',
-    items: [
-      { name: 'Safety Monitor', href: '/mining-safety', icon: ShieldExclamationIcon },
-      { name: 'Incidents', href: '/mining/incidents', icon: ExclamationTriangleIcon },
-      { name: 'Analytics', href: '/mining/analytics', icon: ChartBarIcon },
-    ],
-  },
-  {
-    name: 'Manufacturing',
-    icon: WrenchScrewdriverIcon,
-    color: 'text-blue-400',
-    items: [
-      { name: 'Safety Monitor', href: '/manufacturing/safety', icon: ShieldExclamationIcon },
-      { name: 'Incidents', href: '/manufacturing/incidents', icon: ExclamationTriangleIcon },
-      { name: 'Analytics', href: '/manufacturing/analytics', icon: ChartBarIcon },
-    ],
-  },
-  {
-    name: 'Warehouses',
-    icon: BuildingStorefrontIcon,
-    color: 'text-purple-400',
-    items: [
-      { name: 'Safety Monitor', href: '/warehouse/safety', icon: ShieldExclamationIcon },
-      { name: 'Incidents', href: '/warehouse/incidents', icon: ExclamationTriangleIcon },
-      { name: 'Analytics', href: '/warehouse/analytics', icon: ChartBarIcon },
-    ],
-  },
-  {
-    name: 'Healthcare',
-    icon: HeartIcon,
-    color: 'text-red-400',
-    items: [
-      { name: 'Safety Monitor', href: '/health/safety', icon: ShieldExclamationIcon },
-      { name: 'Incidents', href: '/health/incidents', icon: ExclamationTriangleIcon },
-      { name: 'Analytics', href: '/health/analytics', icon: ChartBarIcon },
-    ],
-  },
-  {
-    name: 'Construction',
-    icon: HomeModernIcon,
-    color: 'text-orange-400',
-    items: [
-      { name: 'Safety Monitor', href: '/construction/safety', icon: ShieldExclamationIcon },
-      { name: 'Incidents', href: '/construction/incidents', icon: ExclamationTriangleIcon },
-      { name: 'Sites', href: '/sites', icon: BuildingOfficeIcon },
-      { name: 'Analytics', href: '/construction/analytics', icon: ChartBarIcon },
-    ],
-  },
-  {
-    name: 'Airport',
-    icon: PaperAirplaneIcon,
-    color: 'text-cyan-400',
-    items: [
-      { name: 'Security Monitor', href: '/airport-security', icon: ShieldExclamationIcon },
-      { name: 'Incidents', href: '/airport/incidents', icon: ExclamationTriangleIcon },
-      { name: 'Analytics', href: '/airport/analytics', icon: ChartBarIcon },
-    ],
-  },
-  {
-    name: 'Agriculture',
-    icon: CubeIcon,
-    color: 'text-green-400',
-    items: [
-      { name: 'Safety Monitor', href: '/agriculture/safety', icon: ShieldExclamationIcon },
-      { name: 'Incidents', href: '/agriculture/incidents', icon: ExclamationTriangleIcon },
-      { name: 'Analytics', href: '/agriculture/analytics', icon: ChartBarIcon },
-    ],
-  },
-]
-
-const toolsNavigation: NavItem[] = [
-  { name: 'Forensics', href: '/forensics', icon: MagnifyingGlassIcon },
-  { name: 'Cameras', href: '/cameras', icon: VideoCameraIcon },
-  { name: 'Media Upload', href: '/media', icon: CloudArrowUpIcon },
-  { name: 'Reports', href: '/reports', icon: DocumentChartBarIcon },
-]
-
-const adminNavigation: NavItem[] = [
+const systemNavigation: SimpleNavItem[] = [
   { name: 'Admin', href: '/admin', icon: UserGroupIcon },
   { name: 'Settings', href: '/settings', icon: Cog6ToothIcon },
 ]
@@ -135,20 +28,10 @@ const adminNavigation: NavItem[] = [
 export default function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [alertScreenOpen, setAlertScreenOpen] = useState(false)
-  const [expandedCategories, setExpandedCategories] = useState<string[]>(['Mining', 'Airport'])
   const location = useLocation()
+  const { activeSolution } = useSector()
 
-  const toggleCategory = (categoryName: string) => {
-    setExpandedCategories(prev =>
-      prev.includes(categoryName)
-        ? prev.filter(c => c !== categoryName)
-        : [...prev, categoryName]
-    )
-  }
-
-  const isCategoryActive = (category: NavCategory) => {
-    return category.items.some(item => location.pathname === item.href)
-  }
+  const isActivePath = (href: string) => location.pathname === href
 
   return (
     <div className="min-h-screen bg-dashboard-bg">
@@ -176,121 +59,84 @@ export default function DashboardLayout() {
 
         {/* Navigation - Scrollable */}
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
-          {/* Main Navigation */}
-          {mainNavigation.map((item) => {
-            const isActive = location.pathname === item.href
-            return (
-              <NavLink
-                key={item.name}
-                to={item.href}
-                className={clsx(
-                  'sidebar-link',
-                  isActive && 'sidebar-link-active'
-                )}
-              >
-                <item.icon className="w-5 h-5" />
-                {item.name}
-              </NavLink>
-            )
-          })}
+          {/* Solution switch (landing page) */}
+          <NavLink
+            to="/solutions"
+            className={clsx(
+              'sidebar-link',
+              isActivePath('/solutions') && 'sidebar-link-active'
+            )}
+          >
+            <Squares2X2Icon className="w-5 h-5" />
+            Change Solution
+          </NavLink>
 
-          {/* Category Label */}
-          <div className="pt-4 pb-2">
-            <p className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Industries</p>
-          </div>
-
-          {/* Categories */}
-          {categories.map((category) => {
-            const isExpanded = expandedCategories.includes(category.name)
-            const isActive = isCategoryActive(category)
-            
-            return (
-              <div key={category.name} className="space-y-1">
-                <button
-                  onClick={() => toggleCategory(category.name)}
-                  className={clsx(
-                    'w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg transition-colors',
-                    isActive
-                      ? 'bg-gray-800 text-white'
-                      : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
-                  )}
-                >
-                  <div className="flex items-center gap-3">
-                    <category.icon className={clsx('w-5 h-5', category.color)} />
-                    <span>{category.name}</span>
-                  </div>
-                  {isExpanded ? (
-                    <ChevronDownIcon className="w-4 h-4" />
-                  ) : (
-                    <ChevronRightIcon className="w-4 h-4" />
-                  )}
-                </button>
-                
-                {isExpanded && (
-                  <div className="ml-4 pl-4 border-l border-gray-700 space-y-1">
-                    {category.items.map((item) => {
-                      const isItemActive = location.pathname === item.href
-                      return (
-                        <NavLink
-                          key={item.href}
-                          to={item.href}
-                          className={clsx(
-                            'flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-colors',
-                            isItemActive
-                              ? 'bg-primary-600 text-white'
-                              : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
-                          )}
-                        >
-                          <item.icon className="w-4 h-4" />
-                          {item.name}
-                        </NavLink>
-                      )
-                    })}
-                  </div>
-                )}
+          {activeSolution ? (
+            <>
+              {/* Module Label */}
+              <div className="pt-4 pb-2">
+                <p className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  {activeSolution.name} Dashboard
+                </p>
               </div>
-            )
-          })}
 
-          {/* Tools Label */}
-          <div className="pt-4 pb-2">
-            <p className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Tools</p>
-          </div>
+              {activeSolution.moduleNav.map((item) => {
+                const href = solutionPath(activeSolution.id, item.slug)
+                const isActive = isActivePath(href)
 
-          {/* Tools Navigation */}
-          {toolsNavigation.map((item) => {
-            const isActive = location.pathname === item.href
-            return (
-              <NavLink
-                key={item.name}
-                to={item.href}
-                className={clsx(
-                  'sidebar-link',
-                  isActive && 'sidebar-link-active'
-                )}
-              >
-                <item.icon className="w-5 h-5" />
-                {item.name}
-              </NavLink>
-            )
-          })}
+                return (
+                  <NavLink
+                    key={href}
+                    to={href}
+                    className={clsx('sidebar-link', isActive && 'sidebar-link-active')}
+                  >
+                    <item.icon className="w-5 h-5" />
+                    {item.label}
+                  </NavLink>
+                )
+              })}
 
-          {/* Admin Label */}
-          <div className="pt-4 pb-2">
+              {/* Tools Label (sector-specific) */}
+              <div className="pt-4 pb-2">
+                <p className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Tools</p>
+              </div>
+
+              {activeSolution.toolsNav.map((item) => {
+                const href = solutionPath(activeSolution.id, item.slug)
+                const isActive = isActivePath(href)
+
+                return (
+                  <NavLink
+                    key={href}
+                    to={href}
+                    className={clsx('sidebar-link', isActive && 'sidebar-link-active')}
+                  >
+                    <item.icon className="w-5 h-5" />
+                    {item.label}
+                  </NavLink>
+                )
+              })}
+            </>
+          ) : (
+            <div className="pt-4">
+              <p className="px-3 text-sm text-gray-500">
+                Select a solution to load a sector-specific dashboard.
+              </p>
+            </div>
+          )}
+
+          {/* System Label */}
+          <div className="pt-6 pb-2">
             <p className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">System</p>
           </div>
 
-          {/* Admin Navigation */}
-          {adminNavigation.map((item) => {
-            const isActive = location.pathname === item.href
+          {systemNavigation.map((item) => {
+            const isActive = isActivePath(item.href)
             return (
               <NavLink
                 key={item.name}
                 to={item.href}
-                className={clsx(
-                  'sidebar-link',
-                  isActive && 'sidebar-link-active'
-                )}
+                className={clsx('sidebar-link', isActive && 'sidebar-link-active')}
               >
                 <item.icon className="w-5 h-5" />
                 {item.name}
