@@ -1,4 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import type { SolutionId } from '../solutions/registry'
 import { getSolution, SOLUTIONS } from '../solutions/registry'
 import { useSector } from '../solutions/SectorContext'
@@ -18,19 +19,46 @@ export type EntitlementsContextValue = {
 
 const EntitlementsContext = createContext<EntitlementsContextValue | null>(null)
 
+const UNLOCK_ALL_KEY = 'isoguard.unlockAllSolutions'
+
+function isTruthy(raw: string | null | undefined) {
+  const v = String(raw ?? '').trim().toLowerCase()
+  return ['1', 'true', 'yes'].includes(v)
+}
+
 export function EntitlementsProvider({ children }: { children: React.ReactNode }) {
   const { activeSolutionId, setActiveSolutionId } = useSector()
+  const location = useLocation()
 
   const devStrict = String((import.meta as any)?.env?.VITE_ENTITLEMENTS_STRICT ?? '').trim().toLowerCase()
   const devUnlockAll = (import.meta as any)?.env?.DEV && !['1', 'true', 'yes'].includes(devStrict)
+
+  // Runtime override (works even in preview/prod builds):
+  // - add ?unlockAllSolutions=1 once to set localStorage
+  // - add ?unlockAllSolutions=0 to clear
+  const unlockFromUrl = useMemo(() => {
+    const q = new URLSearchParams(location.search)
+    return q.get('unlockAllSolutions')
+  }, [location.search])
+
+  useEffect(() => {
+    if (unlockFromUrl === '1' || unlockFromUrl === 'true') {
+      localStorage.setItem(UNLOCK_ALL_KEY, '1')
+    }
+    if (unlockFromUrl === '0' || unlockFromUrl === 'false') {
+      localStorage.removeItem(UNLOCK_ALL_KEY)
+    }
+  }, [unlockFromUrl])
+
+  const forceUnlockAll = devUnlockAll || isTruthy(localStorage.getItem(UNLOCK_ALL_KEY))
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [entitlements, setEntitlements] = useState<EntitlementsMeResponse | null>(null)
 
   const refresh = useCallback(async () => {
-    // Dev convenience: unlock everything even if user is not authenticated.
-    if (devUnlockAll) {
+    // Development convenience: unlock everything even if user is not authenticated.
+    if (forceUnlockAll) {
       const all = SOLUTIONS.map((s) => s.id)
       setEntitlements({
         tier: 'dev',
@@ -54,7 +82,7 @@ export function EntitlementsProvider({ children }: { children: React.ReactNode }
     } finally {
       setLoading(false)
     }
-  }, [devUnlockAll])
+  }, [forceUnlockAll])
 
   useEffect(() => {
     refresh()
