@@ -1,0 +1,31 @@
+sector_id: border
+name: Border Control
+version: '1'
+feature_toggles:
+  reporting: true
+  government_submissions: true
+  rules_engine: true
+ai_models:
+  - id: yolo-perimeter
+    name: Perimeter Security (YOLO)
+    kind: yolo
+    enabled: true
+    artifact: models/border/perimeter.pt
+cameras: []
+zones: []
+rules:
+  - id: border-perimeter-breach
+    name: Perimeter breach
+    description: Any breach of the perimeter fence triggers a critical regulatory event.
+    detection_types: ["perimeter_breach"]
+    severity: critical
+    regulatory_tags: ["BORDER_SECURITY"]
+report_templates:
+  - id: template-daily
+    name: Daily Operations Report
+    description: Daily summary of incidents and KPIs.
+    formats: ["pdf", "csv", "json", "xlsx"]
+  - id: template-government
+    name: Government Submission Bundle
+    description: Standardized export bundle for relevant authorities.
+    formats: ["pdf", "csv", "json", "xlsx"]

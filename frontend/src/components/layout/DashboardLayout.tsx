@@ -9,6 +9,7 @@ import {
   Cog6ToothIcon,
   UserGroupIcon,
   Squares2X2Icon,
+  ShieldCheckIcon,
 } from '@heroicons/react/24/outline'
 import AlertScreen from '../AlertScreen'
 import { useSector } from '../../solutions/SectorContext'
@@ -21,6 +22,7 @@ interface SimpleNavItem {
 }
 
 const systemNavigation: SimpleNavItem[] = [
+  { name: 'Executive Board', href: '/executive', icon: ShieldCheckIcon },
   { name: 'Admin', href: '/admin', icon: UserGroupIcon },
   { name: 'Settings', href: '/settings', icon: Cog6ToothIcon },
 ]

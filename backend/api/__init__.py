@@ -1,7 +1,7 @@
 """API router initialization."""
 from fastapi import APIRouter
 
-from .routes import auth, incidents, analytics, cameras, sites, reports, forensics, media, admin
+from .routes import auth, incidents, analytics, cameras, sites, reports, forensics, media, admin, sectors, executive, government
 
 router = APIRouter()
 
@@ -15,3 +15,6 @@ router.include_router(reports.router, prefix="/reports", tags=["Reports"])
 router.include_router(forensics.router, prefix="/forensics", tags=["Forensics"])
 router.include_router(media.router, prefix="/media", tags=["Media"])
 router.include_router(admin.router, prefix="/admin", tags=["Admin"])
+router.include_router(sectors.router, prefix="/sectors", tags=["Sectors"])
+router.include_router(executive.router, prefix="/executive", tags=["Executive"])
+router.include_router(government.router, prefix="/government", tags=["Government"])

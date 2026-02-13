@@ -39,6 +39,7 @@ export type SolutionSlug =
   | 'reports'
   | 'forensics'
   | 'media'
+  | 'government-submit'
   | 'shift-reports'
   | 'ppe-compliance'
   | 'tailing-dam'
@@ -104,6 +105,7 @@ export const SOLUTIONS: SolutionDefinition[] = [
       { label: 'Forensics', slug: 'forensics', icon: MagnifyingGlassIcon },
       { label: 'Reports', slug: 'reports', icon: DocumentChartBarIcon },
       { label: 'Media Upload', slug: 'media', icon: CloudArrowUpIcon },
+      { label: 'Government Submit', slug: 'government-submit', icon: PaperAirplaneIcon },
     ],
   },
   {
@@ -132,6 +134,7 @@ export const SOLUTIONS: SolutionDefinition[] = [
       { label: 'Forensics', slug: 'forensics', icon: MagnifyingGlassIcon },
       { label: 'Reports', slug: 'reports', icon: DocumentChartBarIcon },
       { label: 'Media Upload', slug: 'media', icon: CloudArrowUpIcon },
+      { label: 'Government Submit', slug: 'government-submit', icon: PaperAirplaneIcon },
     ],
   },
   {
@@ -156,6 +159,7 @@ export const SOLUTIONS: SolutionDefinition[] = [
       { label: 'Forensics', slug: 'forensics', icon: MagnifyingGlassIcon },
       { label: 'Reports', slug: 'reports', icon: DocumentChartBarIcon },
       { label: 'Media Upload', slug: 'media', icon: CloudArrowUpIcon },
+      { label: 'Government Submit', slug: 'government-submit', icon: PaperAirplaneIcon },
     ],
   },
   {
@@ -180,6 +184,7 @@ export const SOLUTIONS: SolutionDefinition[] = [
       { label: 'Forensics', slug: 'forensics', icon: MagnifyingGlassIcon },
       { label: 'Reports', slug: 'reports', icon: DocumentChartBarIcon },
       { label: 'Media Upload', slug: 'media', icon: CloudArrowUpIcon },
+      { label: 'Government Submit', slug: 'government-submit', icon: PaperAirplaneIcon },
     ],
   },
   {
@@ -204,6 +209,7 @@ export const SOLUTIONS: SolutionDefinition[] = [
       { label: 'Forensics', slug: 'forensics', icon: MagnifyingGlassIcon },
       { label: 'Reports', slug: 'reports', icon: DocumentChartBarIcon },
       { label: 'Media Upload', slug: 'media', icon: CloudArrowUpIcon },
+      { label: 'Government Submit', slug: 'government-submit', icon: PaperAirplaneIcon },
     ],
   },
   {
@@ -228,6 +234,7 @@ export const SOLUTIONS: SolutionDefinition[] = [
       { label: 'Forensics', slug: 'forensics', icon: MagnifyingGlassIcon },
       { label: 'Reports', slug: 'reports', icon: DocumentChartBarIcon },
       { label: 'Media Upload', slug: 'media', icon: CloudArrowUpIcon },
+      { label: 'Government Submit', slug: 'government-submit', icon: PaperAirplaneIcon },
     ],
   },
   {
@@ -252,6 +259,7 @@ export const SOLUTIONS: SolutionDefinition[] = [
       { label: 'Forensics', slug: 'forensics', icon: MagnifyingGlassIcon },
       { label: 'Reports', slug: 'reports', icon: DocumentChartBarIcon },
       { label: 'Media Upload', slug: 'media', icon: CloudArrowUpIcon },
+      { label: 'Government Submit', slug: 'government-submit', icon: PaperAirplaneIcon },
     ],
   },
   {
@@ -276,10 +284,11 @@ export const SOLUTIONS: SolutionDefinition[] = [
       { label: 'Forensics', slug: 'forensics', icon: MagnifyingGlassIcon },
       { label: 'Reports', slug: 'reports', icon: DocumentChartBarIcon },
       { label: 'Media Upload', slug: 'media', icon: CloudArrowUpIcon },
+      { label: 'Government Submit', slug: 'government-submit', icon: PaperAirplaneIcon },
     ],
   },
   {
-    id: 'agriculture',
+    id: 'manufacturing',
     name: 'Agriculture',
     shortDescription: 'Animal behavior anomalies and farm safety monitoring.',
     icon: SunIcon,
@@ -300,6 +309,7 @@ export const SOLUTIONS: SolutionDefinition[] = [
       { label: 'Forensics', slug: 'forensics', icon: MagnifyingGlassIcon },
       { label: 'Reports', slug: 'reports', icon: DocumentChartBarIcon },
       { label: 'Media Upload', slug: 'media', icon: CloudArrowUpIcon },
+      { label: 'Government Submit', slug: 'government-submit', icon: PaperAirplaneIcon },
     ],
   },
 ]

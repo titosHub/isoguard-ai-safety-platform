@@ -3,6 +3,7 @@ import DashboardLayout from './components/layout/DashboardLayout'
 import Settings from './pages/Settings'
 import Admin from './pages/Admin'
 import ReportBuilder from './pages/ReportBuilder'
+import ExecutiveBoard from './pages/executive/ExecutiveBoard'
 import SolutionsLanding from './pages/solutions/SolutionsLanding'
 import SectorRouteSync from './solutions/SectorRouteSync'
 import { useSector } from './solutions/SectorContext'
@@ -51,6 +52,7 @@ function App() {
           <Route path="reports" element={<SectorToolRouter slug="reports" />} />
           <Route path="forensics" element={<SectorToolRouter slug="forensics" />} />
           <Route path="media" element={<SectorToolRouter slug="media" />} />
+          <Route path="government-submit" element={<SectorToolRouter slug="government-submit" />} />
 
           {/* mining-specific tools */}
           <Route path="ppe-compliance" element={<SectorToolRouter slug="ppe-compliance" />} />
@@ -68,6 +70,7 @@ function App() {
         </Route>
 
         {/* System (global) */}
+        <Route path="executive" element={<ExecutiveBoard />} />
         <Route path="reports/builder" element={<ReportBuilder />} />
         <Route path="admin" element={<Admin />} />
         <Route path="settings" element={<Settings />} />

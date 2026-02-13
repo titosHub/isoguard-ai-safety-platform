@@ -1,0 +1,31 @@
+sector_id: construction
+name: Construction
+version: '1'
+feature_toggles:
+  reporting: true
+  government_submissions: true
+  rules_engine: true
+ai_models:
+  - id: yolo-site-safety
+    name: Site Safety (YOLO)
+    kind: yolo
+    enabled: true
+    artifact: models/construction/site_safety.pt
+cameras: []
+zones: []
+rules:
+  - id: construction-fall-hazard
+    name: Fall hazard
+    description: Tag fall hazards for operational escalation and compliance.
+    detection_types: ["fall_hazard"]
+    severity: high
+    regulatory_tags: ["OSHA", "ISO45001"]
+report_templates:
+  - id: template-daily
+    name: Daily Safety Report
+    description: Daily summary of incidents and KPIs.
+    formats: ["pdf", "csv", "json", "xlsx"]
+  - id: template-government
+    name: Government Submission Bundle
+    description: Standardized export bundle for regulators.
+    formats: ["pdf", "csv", "json", "xlsx"]

@@ -7,6 +7,7 @@ import Cameras from '../Cameras'
 import Reports from '../Reports'
 import Forensics from '../Forensics'
 import MediaUpload from '../MediaUpload'
+import GovernmentSubmit from './GovernmentSubmit'
 
 function useSolutionFromRoute() {
   const { sector } = useParams()
@@ -53,6 +54,9 @@ export function SectorToolRouter({ slug }: { slug: SolutionSlug }) {
       return <Forensics />
     case 'media':
       return <MediaUpload />
+
+    case 'government-submit':
+      return <GovernmentSubmit />
 
     case 'shift-reports':
       return solution.id === 'mining'

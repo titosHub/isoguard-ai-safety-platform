@@ -1,0 +1,65 @@
+sector_id: mining
+name: Mining
+version: '1'
+feature_toggles:
+  reporting: true
+  government_submissions: true
+  rules_engine: true
+ai_models:
+  - id: yolo-ppe
+    name: PPE Detection (YOLO)
+    kind: yolo
+    enabled: true
+    artifact: models/mining/ppe.pt
+    settings:
+      confidence: 0.5
+  - id: yolo-proximity
+    name: Proximity & TMM Risk (YOLO)
+    kind: yolo
+    enabled: true
+    artifact: models/mining/proximity.pt
+cameras:
+  - id: mining-cam-001
+    name: Shaft Level 1 - Main Face
+    rtsp_url: rtsp://127.0.0.1/mining/shaft-l1
+    site_id: site-005
+    zone_id: zone-012
+zones:
+  - id: zone-012
+    name: Shaft Level 1 - Main Excavation
+    zone_type: underground
+    site_id: site-005
+rules:
+  - id: mining-hardhat-required
+    name: Hardhat required
+    description: Hardhat must be worn in all underground and processing zones.
+    detection_types: ["ppe_hardhat"]
+    severity: high
+    regulatory_tags: ["ISO45001", "SECTION_54"]
+  - id: mining-vest-required
+    name: High-vis vest required
+    description: High-visibility vest must be worn in surface operations.
+    detection_types: ["ppe_vest"]
+    severity: medium
+    regulatory_tags: ["ISO45001"]
+report_templates:
+  - id: template-daily
+    name: Daily Safety Report
+    description: Daily summary of incidents and KPIs.
+    formats: ["pdf", "csv", "json", "xlsx"]
+  - id: template-weekly
+    name: Weekly Safety Report
+    description: Weekly analysis with trends and recommendations.
+    formats: ["pdf", "csv", "json", "xlsx"]
+  - id: template-monthly
+    name: Monthly Executive Report
+    description: Executive summary for leadership.
+    formats: ["pdf", "csv", "json", "xlsx"]
+  - id: template-compliance
+    name: Compliance Report
+    description: ISO 45001 and mining compliance documentation.
+    formats: ["pdf", "csv", "json", "xlsx"]
+  - id: template-government
+    name: Government Submission Bundle
+    description: Standardized export bundle for regulators.
+    formats: ["pdf", "csv", "json", "xlsx"]

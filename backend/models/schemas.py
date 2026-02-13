@@ -306,9 +306,15 @@ class ReportRequest(BaseModel):
     report_type: str  # daily, weekly, monthly, custom
     start_date: datetime
     end_date: datetime
+
+    # Optional sector context (enables sector templates + sector filtering)
+    sector_id: Optional[str] = None
+
     site_ids: Optional[List[str]] = None
     include_charts: bool = True
-    format: str = "pdf"  # pdf, xlsx, csv
+
+    # pdf, xlsx, csv, json
+    format: str = "pdf"
 
 
 class ReportResponse(BaseModel):
@@ -318,6 +324,76 @@ class ReportResponse(BaseModel):
     download_url: Optional[str]
     created_at: datetime
     completed_at: Optional[datetime]
+
+
+# =============================================================================
+# EXECUTIVE / OPERATIONAL DASHBOARD SCHEMAS
+# =============================================================================
+
+class RiskSiteSummary(BaseModel):
+    site_id: str
+    site_name: str
+    risk_score: float
+
+
+class ExecutiveBoardView(BaseModel):
+    """Level 1 – Executive Board View (global governance)."""
+
+    global_safety_score: float
+    trir: float
+    ltifr: float
+    severity_index: float
+    compliance_coverage_percent: float
+    predictive_risk_probability: float
+    days_since_fatality: int
+
+    top_5_risk_sites: List[RiskSiteSummary] = []
+
+    # Higher means higher regulatory exposure.
+    regulatory_exposure_index: float
+
+
+class OperationalView(BaseModel):
+    """Level 2 – Operational View (tactical control)."""
+
+    live_alert_count: int
+    incident_trends: List[IncidentTrendData] = []
+    location_risks: List[LocationRiskData] = []
+    corrective_action_closure_rate: float
+    mttr_hours: float
+
+
+# =============================================================================
+# GOVERNMENT SUBMISSION SCHEMAS
+# =============================================================================
+
+class GovernmentSubmissionCreateRequest(BaseModel):
+    sector_id: str
+    start_date: datetime
+    end_date: datetime
+
+    site_ids: Optional[List[str]] = None
+
+    # pdf, csv, json, xlsx
+    formats: List[str] = ["pdf", "csv", "json", "xlsx"]
+
+    # Optional regulatory framework hint (OSHA, ISO45001, SECTION_54, etc.)
+    framework: Optional[str] = None
+
+    # If true, treat as an actual submission event (vs a draft export).
+    submit: bool = False
+
+
+class GovernmentSubmissionResponse(BaseModel):
+    id: str
+    sector_id: str
+    status: str  # draft, submitted, failed
+
+    created_at: datetime
+    submitted_at: Optional[datetime] = None
+
+    # Download URL for the bundle (zip)
+    download_url: Optional[str] = None
 
 
 # Authentication Schemas
@@ -564,7 +640,7 @@ class ReportBuilderRequest(BaseModel):
     include_sections: List[str] = ["summary", "trends", "violations", "recommendations"]
     chart_types: List[str] = ["bar", "line", "pie"]
     group_by: str = "day"  # day, week, month
-    format: str = "pdf"  # pdf, xlsx, html
+    format: str = "pdf"  # pdf, xlsx, csv, json
 
 
 class ReportBuilderResponse(BaseModel):

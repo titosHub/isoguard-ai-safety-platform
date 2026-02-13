@@ -1,0 +1,54 @@
+sector_id: agriculture
+name: Agriculture
+version: '1'
+feature_toggles:
+  reporting: true
+  government_submissions: true
+  rules_engine: true
+ai_models:
+  - id: yolo-farm-safety
+    name: Farm Safety Detection (YOLO)
+    kind: yolo
+    enabled: true
+    artifact: models/agriculture/safety.pt
+    settings:
+      confidence: 0.5
+cameras:
+  - id: agri-cam-001
+    name: Barn Entrance
+    rtsp_url: rtsp://127.0.0.1/agriculture/barn
+    site_id: site-009
+    zone_id: agri-zone-001
+zones:
+  - id: agri-zone-001
+    name: Barn Entrance
+    zone_type: mandatory_ppe
+    site_id: site-009
+rules:
+  - id: agriculture-gloves-required
+    name: Gloves required
+    description: Gloves must be worn when handling livestock and chemicals.
+    detection_types: ["ppe_gloves"]
+    severity: medium
+    regulatory_tags: ["ISO45001", "AGRI_SAFETY"]
+report_templates:
+  - id: template-daily
+    name: Daily Safety Report
+    description: Daily summary of incidents and KPIs.
+    formats: ["pdf", "csv", "json", "xlsx"]
+  - id: template-weekly
+    name: Weekly Safety Report
+    description: Weekly analysis with trends and recommendations.
+    formats: ["pdf", "csv", "json", "xlsx"]
+  - id: template-monthly
+    name: Monthly Executive Report
+    description: Executive summary for leadership.
+    formats: ["pdf", "csv", "json", "xlsx"]
+  - id: template-compliance
+    name: Compliance Report
+    description: Agriculture safety compliance documentation.
+    formats: ["pdf", "csv", "json", "xlsx"]
+  - id: template-government
+    name: Government Submission Bundle
+    description: Standardized export bundle for regulators.
+    formats: ["pdf", "csv", "json", "xlsx"]

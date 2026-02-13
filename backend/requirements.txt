@@ -38,6 +38,11 @@ aiofiles==23.2.1
 celery==5.3.6
 psutil==5.9.8
 
+# Configs & Reporting
+pyyaml==6.0.1
+reportlab==4.2.5
+openpyxl==3.1.5
+
 # Monitoring & Logging
 structlog==24.1.0
 prometheus-client==0.19.0

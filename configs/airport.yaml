@@ -1,0 +1,65 @@
+sector_id: airport
+name: Airport
+version: '1'
+feature_toggles:
+  reporting: true
+  government_submissions: true
+  rules_engine: true
+ai_models:
+  - id: yolo-security
+    name: Security Detection (YOLO)
+    kind: yolo
+    enabled: true
+    artifact: models/airport/security.pt
+    settings:
+      confidence: 0.55
+  - id: flow-analytics
+    name: Passenger Flow Analytics
+    kind: tracker
+    enabled: true
+    artifact: models/airport/flow.onnx
+cameras:
+  - id: airport-cam-001
+    name: Security Checkpoint
+    rtsp_url: rtsp://127.0.0.1/airport/checkpoint
+    site_id: site-004
+    zone_id: zone-008
+zones:
+  - id: zone-008
+    name: Security Checkpoint
+    zone_type: high_security
+    site_id: site-004
+rules:
+  - id: airport-id-badge-required
+    name: ID badge required
+    description: Staff ID badge must be visible in restricted areas.
+    detection_types: ["id_badge"]
+    severity: high
+    regulatory_tags: ["ISO45001", "AVIATION_SECURITY"]
+  - id: airport-perimeter-breach
+    name: Perimeter breach
+    description: Detect and tag any perimeter breach events.
+    detection_types: ["perimeter_breach"]
+    severity: critical
+    regulatory_tags: ["AVIATION_SECURITY"]
+report_templates:
+  - id: template-daily
+    name: Daily Safety Report
+    description: Daily summary of incidents and KPIs.
+    formats: ["pdf", "csv", "json", "xlsx"]
+  - id: template-weekly
+    name: Weekly Operations Report
+    description: Weekly operations, queue performance, and security metrics.
+    formats: ["pdf", "csv", "json", "xlsx"]
+  - id: template-monthly
+    name: Monthly Executive Report
+    description: Executive summary for leadership.
+    formats: ["pdf", "csv", "json", "xlsx"]
+  - id: template-compliance
+    name: Compliance Report
+    description: Aviation security and compliance documentation.
+    formats: ["pdf", "csv", "json", "xlsx"]
+  - id: template-government
+    name: Government Submission Bundle
+    description: Standardized export bundle for regulators.
+    formats: ["pdf", "csv", "json", "xlsx"]

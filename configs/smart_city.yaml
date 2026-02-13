@@ -1,0 +1,31 @@
+sector_id: smart_city
+name: Smart City
+version: '1'
+feature_toggles:
+  reporting: true
+  government_submissions: true
+  rules_engine: true
+ai_models:
+  - id: yolo-public-safety
+    name: Public Safety (YOLO)
+    kind: yolo
+    enabled: true
+    artifact: models/smart_city/public_safety.pt
+cameras: []
+zones: []
+rules:
+  - id: smart-city-camera-tamper
+    name: Camera tamper
+    description: Camera tamper events must be escalated.
+    detection_types: ["camera_tamper"]
+    severity: high
+    regulatory_tags: ["CITY_PUBLIC_SAFETY"]
+report_templates:
+  - id: template-daily
+    name: Daily Public Safety Report
+    description: Daily summary of incidents and KPIs.
+    formats: ["pdf", "csv", "json", "xlsx"]
+  - id: template-government
+    name: Government Submission Bundle
+    description: Standardized export bundle for relevant authorities.
+    formats: ["pdf", "csv", "json", "xlsx"]

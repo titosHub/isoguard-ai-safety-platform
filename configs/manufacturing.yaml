@@ -1,0 +1,31 @@
+sector_id: manufacturing
+name: Manufacturing
+version: '1'
+feature_toggles:
+  reporting: true
+  government_submissions: true
+  rules_engine: true
+ai_models:
+  - id: yolo-machine-safety
+    name: Machine Safety (YOLO)
+    kind: yolo
+    enabled: true
+    artifact: models/manufacturing/machine_safety.pt
+cameras: []
+zones: []
+rules:
+  - id: manufacturing-loto
+    name: LOTO compliance
+    description: Lockout/Tagout violations must be tagged for compliance.
+    detection_types: ["unsafe_behavior"]
+    severity: high
+    regulatory_tags: ["OSHA", "ISO45001"]
+report_templates:
+  - id: template-daily
+    name: Daily Safety Report
+    description: Daily summary of incidents and KPIs.
+    formats: ["pdf", "csv", "json", "xlsx"]
+  - id: template-government
+    name: Government Submission Bundle
+    description: Standardized export bundle for regulators.
+    formats: ["pdf", "csv", "json", "xlsx"]
