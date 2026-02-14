@@ -33,7 +33,7 @@ import {
 } from 'recharts';
 
 // Industry configuration
-const INDUSTRY_CONFIG: Record<string, {
+export const INDUSTRY_CONFIG: Record<string, {
   name: string;
   color: string;
   bgGradient: string;

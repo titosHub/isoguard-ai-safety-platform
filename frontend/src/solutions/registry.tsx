@@ -36,9 +36,11 @@ export type SolutionSlug =
   | 'incidents'
   | 'analytics'
   | 'cameras'
+  | 'violations'
   | 'reports'
   | 'rules'
   | 'models'
+  | 'ai-model-settings'
   | 'forensics'
   | 'media'
   | 'government-submit'
@@ -101,6 +103,7 @@ export const SOLUTIONS: SolutionDefinition[] = [
     ],
     toolsNav: [
       { label: 'Live Cameras', slug: 'cameras', icon: VideoCameraIcon },
+      { label: 'Violations', slug: 'violations', icon: ExclamationTriangleIcon },
       { label: 'PPE Compliance', slug: 'ppe-compliance', icon: ShieldExclamationIcon },
       { label: 'Tailing Dam Analytics', slug: 'tailing-dam', icon: ChartBarIcon },
       { label: 'Shift Reports', slug: 'shift-reports', icon: ClipboardDocumentCheckIcon },
@@ -108,6 +111,7 @@ export const SOLUTIONS: SolutionDefinition[] = [
       { label: 'Reports', slug: 'reports', icon: DocumentChartBarIcon },
       { label: 'Safety Rules Engine', slug: 'rules', icon: ClipboardDocumentCheckIcon },
       { label: 'Training Models', slug: 'models', icon: CubeIcon },
+      { label: 'AI Model Settings', slug: 'ai-model-settings', icon: WrenchScrewdriverIcon },
       { label: 'Media Upload', slug: 'media', icon: CloudArrowUpIcon },
       { label: 'Government Submit', slug: 'government-submit', icon: PaperAirplaneIcon },
     ],
@@ -135,10 +139,12 @@ export const SOLUTIONS: SolutionDefinition[] = [
       { label: 'Queue Management', slug: 'queue-management', icon: ClipboardDocumentCheckIcon },
       { label: 'Baggage Tracking', slug: 'baggage-tracking', icon: BuildingStorefrontIcon },
       { label: 'Live Cameras', slug: 'cameras', icon: VideoCameraIcon },
+      { label: 'Violations', slug: 'violations', icon: ExclamationTriangleIcon },
       { label: 'Forensics', slug: 'forensics', icon: MagnifyingGlassIcon },
       { label: 'Reports', slug: 'reports', icon: DocumentChartBarIcon },
       { label: 'Safety Rules Engine', slug: 'rules', icon: ClipboardDocumentCheckIcon },
       { label: 'Training Models', slug: 'models', icon: CubeIcon },
+      { label: 'AI Model Settings', slug: 'ai-model-settings', icon: WrenchScrewdriverIcon },
       { label: 'Media Upload', slug: 'media', icon: CloudArrowUpIcon },
       { label: 'Government Submit', slug: 'government-submit', icon: PaperAirplaneIcon },
     ],
@@ -162,10 +168,12 @@ export const SOLUTIONS: SolutionDefinition[] = [
     ],
     toolsNav: [
       { label: 'Live Cameras', slug: 'cameras', icon: VideoCameraIcon },
+      { label: 'Violations', slug: 'violations', icon: ExclamationTriangleIcon },
       { label: 'Forensics', slug: 'forensics', icon: MagnifyingGlassIcon },
       { label: 'Reports', slug: 'reports', icon: DocumentChartBarIcon },
       { label: 'Safety Rules Engine', slug: 'rules', icon: ClipboardDocumentCheckIcon },
       { label: 'Training Models', slug: 'models', icon: CubeIcon },
+      { label: 'AI Model Settings', slug: 'ai-model-settings', icon: WrenchScrewdriverIcon },
       { label: 'Media Upload', slug: 'media', icon: CloudArrowUpIcon },
       { label: 'Government Submit', slug: 'government-submit', icon: PaperAirplaneIcon },
     ],
@@ -189,10 +197,12 @@ export const SOLUTIONS: SolutionDefinition[] = [
     ],
     toolsNav: [
       { label: 'Live Cameras', slug: 'cameras', icon: VideoCameraIcon },
+      { label: 'Violations', slug: 'violations', icon: ExclamationTriangleIcon },
       { label: 'Forensics', slug: 'forensics', icon: MagnifyingGlassIcon },
       { label: 'Reports', slug: 'reports', icon: DocumentChartBarIcon },
       { label: 'Safety Rules Engine', slug: 'rules', icon: ClipboardDocumentCheckIcon },
       { label: 'Training Models', slug: 'models', icon: CubeIcon },
+      { label: 'AI Model Settings', slug: 'ai-model-settings', icon: WrenchScrewdriverIcon },
       { label: 'Media Upload', slug: 'media', icon: CloudArrowUpIcon },
       { label: 'Government Submit', slug: 'government-submit', icon: PaperAirplaneIcon },
     ],
@@ -216,10 +226,12 @@ export const SOLUTIONS: SolutionDefinition[] = [
     ],
     toolsNav: [
       { label: 'Live Cameras', slug: 'cameras', icon: VideoCameraIcon },
+      { label: 'Violations', slug: 'violations', icon: ExclamationTriangleIcon },
       { label: 'Forensics', slug: 'forensics', icon: MagnifyingGlassIcon },
       { label: 'Reports', slug: 'reports', icon: DocumentChartBarIcon },
       { label: 'Safety Rules Engine', slug: 'rules', icon: ClipboardDocumentCheckIcon },
       { label: 'Training Models', slug: 'models', icon: CubeIcon },
+      { label: 'AI Model Settings', slug: 'ai-model-settings', icon: WrenchScrewdriverIcon },
       { label: 'Media Upload', slug: 'media', icon: CloudArrowUpIcon },
       { label: 'Government Submit', slug: 'government-submit', icon: PaperAirplaneIcon },
     ],
@@ -243,10 +255,12 @@ export const SOLUTIONS: SolutionDefinition[] = [
     ],
     toolsNav: [
       { label: 'Live Cameras', slug: 'cameras', icon: VideoCameraIcon },
+      { label: 'Violations', slug: 'violations', icon: ExclamationTriangleIcon },
       { label: 'Forensics', slug: 'forensics', icon: MagnifyingGlassIcon },
       { label: 'Reports', slug: 'reports', icon: DocumentChartBarIcon },
       { label: 'Safety Rules Engine', slug: 'rules', icon: ClipboardDocumentCheckIcon },
       { label: 'Training Models', slug: 'models', icon: CubeIcon },
+      { label: 'AI Model Settings', slug: 'ai-model-settings', icon: WrenchScrewdriverIcon },
       { label: 'Media Upload', slug: 'media', icon: CloudArrowUpIcon },
       { label: 'Government Submit', slug: 'government-submit', icon: PaperAirplaneIcon },
     ],
@@ -270,10 +284,12 @@ export const SOLUTIONS: SolutionDefinition[] = [
     ],
     toolsNav: [
       { label: 'Live Cameras', slug: 'cameras', icon: VideoCameraIcon },
+      { label: 'Violations', slug: 'violations', icon: ExclamationTriangleIcon },
       { label: 'Forensics', slug: 'forensics', icon: MagnifyingGlassIcon },
       { label: 'Reports', slug: 'reports', icon: DocumentChartBarIcon },
       { label: 'Safety Rules Engine', slug: 'rules', icon: ClipboardDocumentCheckIcon },
       { label: 'Training Models', slug: 'models', icon: CubeIcon },
+      { label: 'AI Model Settings', slug: 'ai-model-settings', icon: WrenchScrewdriverIcon },
       { label: 'Media Upload', slug: 'media', icon: CloudArrowUpIcon },
       { label: 'Government Submit', slug: 'government-submit', icon: PaperAirplaneIcon },
     ],
@@ -297,10 +313,12 @@ export const SOLUTIONS: SolutionDefinition[] = [
     ],
     toolsNav: [
       { label: 'Live Cameras', slug: 'cameras', icon: VideoCameraIcon },
+      { label: 'Violations', slug: 'violations', icon: ExclamationTriangleIcon },
       { label: 'Forensics', slug: 'forensics', icon: MagnifyingGlassIcon },
       { label: 'Reports', slug: 'reports', icon: DocumentChartBarIcon },
       { label: 'Safety Rules Engine', slug: 'rules', icon: ClipboardDocumentCheckIcon },
       { label: 'Training Models', slug: 'models', icon: CubeIcon },
+      { label: 'AI Model Settings', slug: 'ai-model-settings', icon: WrenchScrewdriverIcon },
       { label: 'Media Upload', slug: 'media', icon: CloudArrowUpIcon },
       { label: 'Government Submit', slug: 'government-submit', icon: PaperAirplaneIcon },
     ],
@@ -324,10 +342,12 @@ export const SOLUTIONS: SolutionDefinition[] = [
     ],
     toolsNav: [
       { label: 'Live Cameras', slug: 'cameras', icon: VideoCameraIcon },
+      { label: 'Violations', slug: 'violations', icon: ExclamationTriangleIcon },
       { label: 'Forensics', slug: 'forensics', icon: MagnifyingGlassIcon },
       { label: 'Reports', slug: 'reports', icon: DocumentChartBarIcon },
       { label: 'Safety Rules Engine', slug: 'rules', icon: ClipboardDocumentCheckIcon },
       { label: 'Training Models', slug: 'models', icon: CubeIcon },
+      { label: 'AI Model Settings', slug: 'ai-model-settings', icon: WrenchScrewdriverIcon },
       { label: 'Media Upload', slug: 'media', icon: CloudArrowUpIcon },
       { label: 'Government Submit', slug: 'government-submit', icon: PaperAirplaneIcon },
     ],

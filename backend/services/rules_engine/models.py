@@ -40,6 +40,11 @@ class RuleEvaluationResult(BaseModel):
     severity: str
     regulatory_tags: List[str] = []
 
+    # v2 metadata (optional)
+    ai_models: List[str] = []
+    duration_seconds: Optional[float] = None
+    actions: List[Dict[str, Any]] = []
+
     details: Dict[str, Any] = {}
 
 

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { PlayIcon, ShieldExclamationIcon } from '@heroicons/react/24/outline'
 import { apiClient } from '../../services/api'
 import { useSector } from '../../solutions/SectorContext'
@@ -50,6 +50,7 @@ type EvaluationResponse = {
 
 export default function SectorRules() {
   const { sector } = useParams()
+  const navigate = useNavigate()
   const { activeSolution } = useSector()
 
   const [loading, setLoading] = useState(false)
@@ -60,6 +61,10 @@ export default function SectorRules() {
   const [evalLoading, setEvalLoading] = useState(false)
   const [evalError, setEvalError] = useState<string | null>(null)
   const [evalResult, setEvalResult] = useState<EvaluationResponse | null>(null)
+
+  const [createLoading, setCreateLoading] = useState(false)
+  const [createError, setCreateError] = useState<string | null>(null)
+  const [createResult, setCreateResult] = useState<{ created_total: number } | null>(null)
 
   const sectorName = activeSolution?.name ?? sector ?? 'Sector'
 
@@ -117,6 +122,27 @@ export default function SectorRules() {
       setEvalError(e?.message ?? 'Failed to evaluate rules')
     } finally {
       setEvalLoading(false)
+    }
+  }
+
+  const evaluateAndCreate = async () => {
+    if (!sector) return
+
+    setCreateLoading(true)
+    setCreateError(null)
+    setCreateResult(null)
+
+    try {
+      const events = JSON.parse(eventsJson || '[]') as DetectionEvent[]
+      const res = await apiClient.post<{ created_total: number }>(
+        `/api/v1/sectors/${sector}/rules/evaluate-and-create`,
+        events
+      )
+      setCreateResult({ created_total: res.data.created_total })
+    } catch (e: any) {
+      setCreateError(e?.message ?? 'Failed to evaluate and create violations')
+    } finally {
+      setCreateLoading(false)
     }
   }
 
@@ -211,9 +237,34 @@ export default function SectorRules() {
             {evalError}
           </div>
         )}
+        {createError && (
+          <div className="p-3 rounded-lg border border-red-500/30 bg-red-500/10 text-red-300 text-sm">
+            {createError}
+          </div>
+        )}
+        {createResult && (
+          <div className="p-3 rounded-lg border border-green-500/30 bg-green-500/10 text-green-200 text-sm flex items-center justify-between gap-3">
+            <div>
+              Created <span className="font-semibold">{createResult.created_total}</span> violation(s).
+            </div>
+            <button
+              className="px-3 py-1.5 rounded-lg border border-dashboard-border text-gray-200 hover:bg-dashboard-bg"
+              onClick={() => navigate(`/s/${sector}/violations`)}
+            >
+              View violations
+            </button>
+          </div>
+        )}
 
-        <div className="flex items-center justify-end">
-          <button className="btn-primary" onClick={evaluate} disabled={evalLoading || !sector}>
+        <div className="flex items-center justify-end gap-2">
+          <button
+            className="px-4 py-2 rounded-lg border border-dashboard-border text-gray-200 hover:bg-dashboard-bg"
+            onClick={evaluateAndCreate}
+            disabled={createLoading || evalLoading || !sector}
+          >
+            {createLoading ? 'Creating…' : 'Evaluate & Create'}
+          </button>
+          <button className="btn-primary" onClick={evaluate} disabled={evalLoading || createLoading || !sector}>
             <PlayIcon className="w-4 h-4 mr-2" />
             {evalLoading ? 'Evaluating…' : 'Evaluate'}
           </button>

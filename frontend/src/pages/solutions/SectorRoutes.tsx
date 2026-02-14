@@ -2,14 +2,18 @@ import { Navigate, useParams } from 'react-router-dom'
 import { getSolution, solutionPath, type SolutionId, type SolutionSlug } from '../../solutions/registry'
 import MiningSafety from '../MiningSafety'
 import AirportSecurity from '../AirportSecurity'
-import IndustrySafety from '../IndustrySafety'
+import SectorOverview from '../SectorOverview'
 import Cameras from '../Cameras'
+import Violations from '../Violations'
 import Reports from '../Reports'
-import Forensics from '../Forensics'
+import ForensicsSearch from '../ForensicsSearch'
 import MediaUpload from '../MediaUpload'
+import SectorAnalytics from './SectorAnalytics'
+import SectorIncidents from './SectorIncidents'
 import GovernmentSubmit from './GovernmentSubmit'
 import SectorRules from './SectorRules'
 import TrainingModels from './TrainingModels'
+import AIModelSettings from './AIModelSettings'
 
 function useSolutionFromRoute() {
   const { sector } = useParams()
@@ -30,17 +34,15 @@ export function SectorModulePage({ slug }: { slug: 'overview' | 'incidents' | 'a
   if (slug === 'overview') {
     if (solution.id === 'mining') return <MiningSafety defaultTab="myday" />
     if (solution.id === 'airport') return <AirportSecurity />
-    return <IndustrySafety industry={solution.id} defaultTab="overview" />
+    return <SectorOverview />
   }
 
   if (slug === 'incidents') {
-    if (solution.id === 'mining') return <MiningSafety defaultTab="incidents" />
-    return <IndustrySafety industry={solution.id} defaultTab="incidents" />
+    return <SectorIncidents />
   }
 
   // analytics
-  if (solution.id === 'mining') return <MiningSafety defaultTab="analytics" />
-  return <IndustrySafety industry={solution.id} defaultTab="analytics" />
+  return <SectorAnalytics />
 }
 
 export function SectorToolRouter({ slug }: { slug: SolutionSlug }) {
@@ -50,14 +52,18 @@ export function SectorToolRouter({ slug }: { slug: SolutionSlug }) {
   switch (slug) {
     case 'cameras':
       return <Cameras />
+    case 'violations':
+      return <Violations />
     case 'reports':
       return <Reports />
     case 'rules':
       return <SectorRules />
     case 'models':
       return <TrainingModels />
+    case 'ai-model-settings':
+      return <AIModelSettings />
     case 'forensics':
-      return <Forensics />
+      return <ForensicsSearch />
     case 'media':
       return <MediaUpload />
 

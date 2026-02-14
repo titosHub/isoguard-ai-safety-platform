@@ -36,6 +36,9 @@ def evaluate_events(sector_id: str, events: List[DetectionEvent]) -> List[EventR
                     matched_detection_types=matched,
                     severity=rule.severity,
                     regulatory_tags=rule.regulatory_tags,
+                    ai_models=getattr(rule, 'ai_models', []) or [],
+                    duration_seconds=getattr(rule, 'duration_seconds', None),
+                    actions=[a.model_dump() for a in (getattr(rule, 'actions', []) or [])],
                     details={
                         'sector_id': sector_id,
                         'event_detected_at': ev.detected_at.isoformat(),

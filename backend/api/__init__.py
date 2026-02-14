@@ -4,6 +4,7 @@ from fastapi import APIRouter
 from .routes import (
     admin,
     analytics,
+    audit,
     auth,
     cameras,
     entitlements,
@@ -22,6 +23,7 @@ router = APIRouter()
 # Include all route modules
 router.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 router.include_router(entitlements.router, prefix="/entitlements", tags=["Entitlements"])
+router.include_router(audit.router, prefix="/audit", tags=["Audit"])
 router.include_router(incidents.router, prefix="/incidents", tags=["Incidents"])
 router.include_router(analytics.router, prefix="/analytics", tags=["Analytics"])
 router.include_router(cameras.router, prefix="/cameras", tags=["Cameras"])
