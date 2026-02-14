@@ -22,15 +22,15 @@
   }
   
   .card-header {
-    @apply px-6 py-4 border-b border-dashboard-border;
+    @apply px-4 py-3 sm:px-6 sm:py-4 border-b border-dashboard-border;
   }
   
   .card-body {
-    @apply p-6;
+    @apply p-4 sm:p-6;
   }
   
   .stat-card {
-    @apply card p-6 hover:border-primary-500/50 transition-colors duration-300;
+    @apply card p-4 sm:p-6 hover:border-primary-500/50 transition-colors duration-300;
   }
   
   .input-field {
@@ -38,7 +38,7 @@
   }
   
   .sidebar-link {
-    @apply flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-400 rounded-lg hover:bg-dashboard-card hover:text-white transition-colors duration-200;
+    @apply flex items-center gap-3 px-3 py-2 sm:px-4 sm:py-3 text-sm font-medium text-gray-400 rounded-lg hover:bg-dashboard-card hover:text-white transition-colors duration-200;
   }
   
   .sidebar-link-active {

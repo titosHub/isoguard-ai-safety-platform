@@ -745,8 +745,8 @@ export default function Violations({
 
       {/* Modal */}
       {selected && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
-          <div className="w-full max-w-5xl bg-gray-900 border border-dashboard-border rounded-xl overflow-hidden">
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-3 sm:p-4 z-50">
+          <div className="w-full max-w-5xl bg-gray-900 border border-dashboard-border rounded-xl overflow-hidden max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-4 border-b border-dashboard-border">
               <div className="min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
@@ -819,7 +819,7 @@ export default function Violations({
                   </div>
                 )}
 
-                <div className="rounded-xl border border-dashboard-border bg-black/20 overflow-hidden min-h-[320px] flex items-center justify-center">
+                <div className="rounded-xl border border-dashboard-border bg-black/20 overflow-hidden min-h-[220px] sm:min-h-[320px] flex items-center justify-center">
                   {previewUrl ? (
                     selected?.evidence?.[0]?.media_type === 'video' || previewUrl.includes('.mp4') ? (
                       <video className="w-full h-full" controls src={previewUrl} />

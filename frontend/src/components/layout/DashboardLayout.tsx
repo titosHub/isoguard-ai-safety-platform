@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Outlet, NavLink, useLocation } from 'react-router-dom'
 import { clsx } from 'clsx'
 import {
@@ -10,6 +10,8 @@ import {
   UserGroupIcon,
   Squares2X2Icon,
   ShieldCheckIcon,
+  MagnifyingGlassIcon,
+  XMarkIcon,
 } from '@heroicons/react/24/outline'
 import AlertScreen from '../AlertScreen'
 import { useSector } from '../../solutions/SectorContext'
@@ -30,10 +32,18 @@ const systemNavigation: SimpleNavItem[] = [
 export default function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [alertScreenOpen, setAlertScreenOpen] = useState(false)
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
   const location = useLocation()
   const { activeSolution } = useSector()
 
+  // If the route changes, close any mobile overlays.
+  useEffect(() => {
+    setSidebarOpen(false)
+    setMobileSearchOpen(false)
+  }, [location.pathname])
+
   const isActivePath = (href: string) => location.pathname === href
+  const closeSidebar = () => setSidebarOpen(false)
 
   return (
     <div className="min-h-screen bg-dashboard-bg">
@@ -57,6 +67,14 @@ export default function DashboardLayout() {
             alt="IsoGuard.Ai" 
             className="h-8 w-auto"
           />
+          <button
+            type="button"
+            className="ml-auto p-2 text-gray-400 hover:text-white lg:hidden"
+            onClick={() => setSidebarOpen(false)}
+            aria-label="Close sidebar"
+          >
+            <XMarkIcon className="w-5 h-5" />
+          </button>
         </div>
 
         {/* Navigation - Scrollable */}
@@ -64,6 +82,7 @@ export default function DashboardLayout() {
           {/* Solution switch (landing page) */}
           <NavLink
             to="/solutions"
+            onClick={closeSidebar}
             className={clsx(
               'sidebar-link',
               isActivePath('/solutions') && 'sidebar-link-active'
@@ -90,6 +109,7 @@ export default function DashboardLayout() {
                   <NavLink
                     key={href}
                     to={href}
+                    onClick={closeSidebar}
                     className={clsx('sidebar-link', isActive && 'sidebar-link-active')}
                   >
                     <item.icon className="w-5 h-5" />
@@ -111,6 +131,7 @@ export default function DashboardLayout() {
                   <NavLink
                     key={href}
                     to={href}
+                    onClick={closeSidebar}
                     className={clsx('sidebar-link', isActive && 'sidebar-link-active')}
                   >
                     <item.icon className="w-5 h-5" />
@@ -138,6 +159,7 @@ export default function DashboardLayout() {
               <NavLink
                 key={item.name}
                 to={item.href}
+                onClick={closeSidebar}
                 className={clsx('sidebar-link', isActive && 'sidebar-link-active')}
               >
                 <item.icon className="w-5 h-5" />
@@ -163,8 +185,33 @@ export default function DashboardLayout() {
 
       {/* Main content */}
       <div className="lg:pl-64">
+        {/* Mobile search overlay */}
+        {mobileSearchOpen && (
+          <>
+            <div className="fixed inset-0 z-40 bg-black/50 md:hidden" onClick={() => setMobileSearchOpen(false)} />
+            <div className="fixed top-0 inset-x-0 z-50 md:hidden bg-dashboard-card/95 backdrop-blur-lg border-b border-dashboard-border p-3">
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  autoFocus
+                  placeholder="Search incidents, cameras, sites..."
+                  className="input-field"
+                />
+                <button
+                  type="button"
+                  className="p-2 text-gray-400 hover:text-white"
+                  onClick={() => setMobileSearchOpen(false)}
+                  aria-label="Close search"
+                >
+                  <XMarkIcon className="w-6 h-6" />
+                </button>
+              </div>
+            </div>
+          </>
+        )}
+
         {/* Top header */}
-        <header className="sticky top-0 z-30 flex items-center justify-between h-16 px-4 bg-dashboard-card/80 backdrop-blur-lg border-b border-dashboard-border lg:px-8">
+        <header className="sticky top-0 z-30 flex items-center justify-between h-16 px-3 sm:px-4 bg-dashboard-card/80 backdrop-blur-lg border-b border-dashboard-border lg:px-8">
           <button
             type="button"
             className="p-2 -ml-2 text-gray-400 lg:hidden hover:text-white"
@@ -173,8 +220,8 @@ export default function DashboardLayout() {
             <Bars3Icon className="w-6 h-6" />
           </button>
 
-          {/* Search */}
-          <div className="flex-1 max-w-md mx-4">
+          {/* Search (desktop/tablet) */}
+          <div className="hidden md:block flex-1 max-w-md mx-3 lg:mx-4 min-w-0">
             <input
               type="text"
               placeholder="Search incidents, cameras, sites..."
@@ -183,7 +230,15 @@ export default function DashboardLayout() {
           </div>
 
           {/* Right actions */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
+            <button
+              type="button"
+              className="p-2 text-gray-400 hover:text-white md:hidden"
+              onClick={() => setMobileSearchOpen(true)}
+              aria-label="Open search"
+            >
+              <MagnifyingGlassIcon className="w-6 h-6" />
+            </button>
             {/* Alert Screen Button */}
             <button 
               onClick={() => setAlertScreenOpen(true)}
